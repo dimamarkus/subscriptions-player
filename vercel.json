@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "src/app/api/queues/process-inbound-email/route.ts": {
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "process-inbound-email"
+        }
+      ]
+    }
+  }
+}

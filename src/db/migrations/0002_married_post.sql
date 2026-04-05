@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "inbound_aliases_active_user_idx" ON "inbound_aliases" USING btree ("user_id") WHERE "inbound_aliases"."status" = 'active';

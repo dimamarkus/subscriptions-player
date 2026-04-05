@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1775340770555,
+      "tag": "0000_awesome_corsair",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775342236197,
+      "tag": "0001_flippant_junta",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775342291066,
+      "tag": "0002_married_post",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1775401761626,
+      "tag": "0003_plain_shiva",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1775402042979,
+      "tag": "0004_abnormal_hedge_knight",
+      "breakpoints": true
+    }
+  ]
+}
