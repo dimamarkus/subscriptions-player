@@ -27,12 +27,6 @@ export function AppShell({ children }: AppShellProps) {
               Queue
             </Link>
             <Link
-              href="/app/onboarding"
-              className="text-inherit transition hover:text-white"
-            >
-              Onboarding
-            </Link>
-            <Link
               href="/app/imports"
               className="text-inherit transition hover:text-white"
             >

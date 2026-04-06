@@ -21,7 +21,7 @@ export default async function SignUpPage() {
           </h1>
           <p className="mt-3 text-sm leading-6 text-zinc-400">
             Open signup is enabled. After account creation, the app will take
-            users into onboarding to get their forwarding address.
+            users into settings to get their forwarding address.
           </p>
         </div>
 
@@ -29,7 +29,7 @@ export default async function SignUpPage() {
           path="/sign-up"
           routing="path"
           signInUrl="/sign-in"
-          fallbackRedirectUrl="/app/onboarding"
+          fallbackRedirectUrl="/app/settings"
         />
       </div>
     </main>

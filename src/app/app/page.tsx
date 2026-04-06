@@ -47,7 +47,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
   const inboundAlias = await getActiveInboundAlias(currentUser.id);
 
   if (!inboundAlias) {
-    redirect("/app/onboarding");
+    redirect("/app/settings");
   }
 
   const selectedStatus = parseQueueStatusFilter(params.status);

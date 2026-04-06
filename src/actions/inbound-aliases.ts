@@ -11,6 +11,5 @@ export async function rotateInboundAliasAction() {
   await rotateInboundAlias(user.id);
 
   revalidatePath("/app");
-  revalidatePath("/app/onboarding");
   revalidatePath("/app/settings");
 }
