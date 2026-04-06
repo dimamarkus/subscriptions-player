@@ -34,9 +34,22 @@ export default async function OnboardingPage() {
           Personal import address
         </p>
         <div className="mt-5 flex flex-col gap-4 rounded-2xl border border-white/10 bg-zinc-950 p-5 md:flex-row md:items-center md:justify-between">
-          <code className="break-all font-mono text-sm text-white">
-            {forwardingAddress}
-          </code>
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-zinc-500">
+                Forwarding address
+              </p>
+              <code className="mt-2 block break-all font-mono text-sm text-white">
+                {forwardingAddress}
+              </code>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-zinc-500">
+                Signed-in account
+              </p>
+              <p className="mt-2 text-sm text-zinc-200">{user.email}</p>
+            </div>
+          </div>
           <div className="flex flex-wrap gap-3">
             <CopyTextButton text={forwardingAddress} />
             <form action={rotateInboundAliasAction}>

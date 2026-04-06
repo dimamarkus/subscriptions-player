@@ -23,10 +23,10 @@ Implemented so far:
 - imports/debug page for webhook event visibility
 - release metadata enrichment from Bandcamp pages
 - embedded Bandcamp player rendering where resolvable
+- compact queue cards with status dropdowns and hidden diagnostics
 
 Planned next:
 
-- richer queue card presentation
 - production-hardening for enrichment and embed retries
 - more robust import diagnostics
 
