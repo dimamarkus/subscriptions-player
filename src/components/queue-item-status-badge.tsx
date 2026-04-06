@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatIsoDateLabel } from "@/lib/dates/format-iso-date-label";
 import type { UserReleaseStatus } from "@/lib/releases/user-release-status";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +37,7 @@ type QueueItemStatusBadgeProps = {
     importCount: number;
     firstSeenAt: string;
     lastSeenAt: string;
+    originalEmailSentOn: string | null;
     resolvedStatus: string;
     hasEmbed: boolean;
   };
@@ -74,8 +76,15 @@ export function QueueItemStatusBadge({
     () => ({
       firstSeenAt: new Date(diagnostics.firstSeenAt).toLocaleString(),
       lastSeenAt: new Date(diagnostics.lastSeenAt).toLocaleString(),
+      originalEmailSentOn: diagnostics.originalEmailSentOn
+        ? formatIsoDateLabel(diagnostics.originalEmailSentOn)
+        : null,
     }),
-    [diagnostics.firstSeenAt, diagnostics.lastSeenAt],
+    [
+      diagnostics.firstSeenAt,
+      diagnostics.lastSeenAt,
+      diagnostics.originalEmailSentOn,
+    ],
   );
 
   function updateStatus(status: UserReleaseStatus) {
@@ -164,6 +173,12 @@ export function QueueItemStatusBadge({
             <div>
               <dt className="text-zinc-500">Last seen</dt>
               <dd className="mt-1 text-zinc-100">{formattedDates.lastSeenAt}</dd>
+            </div>
+            <div>
+              <dt className="text-zinc-500">Original email date</dt>
+              <dd className="mt-1 text-zinc-100">
+                {formattedDates.originalEmailSentOn ?? "Unavailable"}
+              </dd>
             </div>
             <div className="sm:col-span-2">
               <dt className="text-zinc-500">Bandcamp domain</dt>

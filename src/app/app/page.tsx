@@ -5,6 +5,7 @@ import { BandcampEmbedPlayer } from "@/components/bandcamp-embed-player";
 import { QueueItemStatusBadge } from "@/components/queue-item-status-badge";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getBandcampDomainLabel } from "@/lib/bandcamp/get-bandcamp-domain-label";
+import { formatIsoDateLabel } from "@/lib/dates/format-iso-date-label";
 import { getActiveInboundAlias } from "@/lib/inbound-aliases/get-active-inbound-alias";
 import { listUserQueueItems } from "@/lib/releases/list-user-queue-items";
 import {
@@ -114,6 +115,9 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
             const artistName = item.artistName ?? item.bandcampDomain;
             const bandcampLabel = getBandcampDomainLabel(item.bandcampDomain);
             const bandcampProfileUrl = `https://${item.bandcampDomain}`;
+            const originalEmailDateLabel = item.originalEmailSentOn
+              ? formatIsoDateLabel(item.originalEmailSentOn)
+              : null;
 
             return (
               <article
@@ -136,6 +140,16 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
                       >
                         {bandcampLabel}
                       </a>
+                      {originalEmailDateLabel ? (
+                        <>
+                          <span aria-hidden="true" className="text-zinc-700">
+                            •
+                          </span>
+                          <span className="tracking-[0.14em] text-zinc-400">
+                            {originalEmailDateLabel}
+                          </span>
+                        </>
+                      ) : null}
                     </div>
                     <h2 className="text-base font-semibold text-white md:text-lg">
                       {releaseTitle}
@@ -154,6 +168,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
                       importCount: item.importCount,
                       firstSeenAt: item.firstSeenAt.toISOString(),
                       lastSeenAt: item.lastSeenAt.toISOString(),
+                      originalEmailSentOn: item.originalEmailSentOn,
                       resolvedStatus: item.resolvedStatus,
                       hasEmbed: Boolean(item.embedUrl),
                     }}

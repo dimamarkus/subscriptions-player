@@ -1,0 +1,1 @@
+ALTER TABLE "inbound_emails" ADD COLUMN "original_email_sent_on" date;

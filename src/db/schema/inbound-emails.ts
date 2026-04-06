@@ -1,5 +1,6 @@
 import { index } from "drizzle-orm/pg-core";
 import {
+  date,
   jsonb,
   pgEnum,
   pgTable,
@@ -45,6 +46,7 @@ export const inboundEmails = pgTable(
     emailType: inboundEmailTypeEnum("email_type")
       .notNull()
       .default("bandcamp_import"),
+    originalEmailSentOn: date("original_email_sent_on"),
     gmailForwardingConfirmationUrl: text("gmail_forwarding_confirmation_url"),
     gmailForwardingConfirmationCode: text("gmail_forwarding_confirmation_code"),
     parseStatus: inboundEmailParseStatusEnum("parse_status")

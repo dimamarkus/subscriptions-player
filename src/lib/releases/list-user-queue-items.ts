@@ -1,8 +1,8 @@
 import "server-only";
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
-import { releases, userReleases } from "@/db/schema";
+import { inboundEmails, releaseImportOccurrences, releases, userReleases } from "@/db/schema";
 import {
   ALL_QUEUE_STATUS_FILTER,
   type QueueStatusFilter,
@@ -57,8 +57,39 @@ export async function listUserQueueItems({
     .limit(pageSize)
     .offset((currentPage - 1) * pageSize);
 
+  const userReleaseIds = items.map((item) => item.userReleaseId);
+  const originalDatesByUserReleaseId = new Map<string, string>();
+
+  if (userReleaseIds.length > 0) {
+    const originalDates = await getDb()
+      .select({
+        userReleaseId: releaseImportOccurrences.userReleaseId,
+        originalEmailSentOn: sql<string | null>`min(${inboundEmails.originalEmailSentOn})`,
+      })
+      .from(releaseImportOccurrences)
+      .innerJoin(
+        inboundEmails,
+        eq(releaseImportOccurrences.inboundEmailId, inboundEmails.id),
+      )
+      .where(inArray(releaseImportOccurrences.userReleaseId, userReleaseIds))
+      .groupBy(releaseImportOccurrences.userReleaseId);
+
+    for (const row of originalDates) {
+      if (row.originalEmailSentOn) {
+        originalDatesByUserReleaseId.set(
+          row.userReleaseId,
+          row.originalEmailSentOn,
+        );
+      }
+    }
+  }
+
   return {
-    items,
+    items: items.map((item) => ({
+      ...item,
+      originalEmailSentOn:
+        originalDatesByUserReleaseId.get(item.userReleaseId) ?? null,
+    })),
     totalCount,
     totalPages,
     currentPage,

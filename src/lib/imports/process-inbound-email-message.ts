@@ -9,6 +9,7 @@ import {
   userReleases,
 } from "@/db/schema";
 import { enrichRelease } from "@/lib/bandcamp/enrich-release";
+import { extractOriginalBandcampEmailSentOn } from "@/lib/email/extract-original-bandcamp-email-sent-on";
 import { parseGmailForwardingVerification } from "@/lib/email/parse-gmail-forwarding-verification";
 import { extractBandcampReleaseLinks } from "@/lib/bandcamp/extract-bandcamp-release-links";
 import { findActiveInboundAliasByRecipients } from "@/lib/inbound-aliases/find-active-inbound-alias-by-recipient";
@@ -29,6 +30,7 @@ async function upsertInboundEmailRecord(input: {
   headersJson: Record<string, string> | null | undefined;
   rawLinksJson: string[];
   emailType?: "bandcamp_import" | "gmail_forwarding_verification";
+  originalEmailSentOn?: string | null | undefined;
   gmailForwardingConfirmationUrl?: string | null | undefined;
   gmailForwardingConfirmationCode?: string | null | undefined;
 }) {
@@ -52,6 +54,7 @@ async function upsertInboundEmailRecord(input: {
         headersJson: input.headersJson ?? null,
         rawLinksJson: input.rawLinksJson,
         emailType: input.emailType ?? "bandcamp_import",
+        originalEmailSentOn: input.originalEmailSentOn ?? null,
         gmailForwardingConfirmationUrl:
           input.gmailForwardingConfirmationUrl ?? null,
         gmailForwardingConfirmationCode:
@@ -78,6 +81,7 @@ async function upsertInboundEmailRecord(input: {
       headersJson: input.headersJson ?? null,
       rawLinksJson: input.rawLinksJson,
       emailType: input.emailType ?? "bandcamp_import",
+      originalEmailSentOn: input.originalEmailSentOn ?? null,
       gmailForwardingConfirmationUrl: input.gmailForwardingConfirmationUrl ?? null,
       gmailForwardingConfirmationCode:
         input.gmailForwardingConfirmationCode ?? null,
@@ -235,6 +239,11 @@ export async function processInboundEmailMessage(
     html: receivedEmail.html,
     text: receivedEmail.text,
   });
+  const originalBandcampEmailSentOn = extractOriginalBandcampEmailSentOn({
+    subject: receivedEmail.subject,
+    html: receivedEmail.html,
+    text: receivedEmail.text,
+  });
 
   const inboundEmail = await upsertInboundEmailRecord({
     webhookEventId: message.webhookEventId,
@@ -253,6 +262,7 @@ export async function processInboundEmailMessage(
     emailType: gmailForwardingVerification
       ? "gmail_forwarding_verification"
       : "bandcamp_import",
+    originalEmailSentOn: originalBandcampEmailSentOn,
     gmailForwardingConfirmationUrl:
       gmailForwardingVerification?.confirmationUrl ?? null,
     gmailForwardingConfirmationCode:
