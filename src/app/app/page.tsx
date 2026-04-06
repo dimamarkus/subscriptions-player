@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { BandcampEmbedPlayer } from "@/components/bandcamp-embed-player";
@@ -6,8 +7,41 @@ import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getBandcampDomainLabel } from "@/lib/bandcamp/get-bandcamp-domain-label";
 import { getActiveInboundAlias } from "@/lib/inbound-aliases/get-active-inbound-alias";
 import { listUserQueueItems } from "@/lib/releases/list-user-queue-items";
+import {
+  ALL_QUEUE_STATUS_FILTER,
+  DEFAULT_QUEUE_STATUS_FILTER,
+  parseQueuePage,
+  parseQueueStatusFilter,
+  QUEUE_STATUS_FILTER_OPTIONS,
+  type QueueStatusFilter,
+} from "@/lib/releases/user-release-status";
 
-export default async function AppHomePage() {
+const QUEUE_PAGE_SIZE = 24;
+
+type AppHomePageProps = {
+  searchParams: Promise<{
+    page?: string | string[];
+    status?: string | string[];
+  }>;
+};
+
+function getQueueHref(status: QueueStatusFilter, page = 1) {
+  const params = new URLSearchParams();
+
+  if (status !== DEFAULT_QUEUE_STATUS_FILTER) {
+    params.set("status", status);
+  }
+
+  if (page > 1) {
+    params.set("page", String(page));
+  }
+
+  const query = params.toString();
+  return query ? `/app?${query}` : "/app";
+}
+
+export default async function AppHomePage({ searchParams }: AppHomePageProps) {
+  const params = await searchParams;
   const currentUser = await ensureAppUser();
   const inboundAlias = await getActiveInboundAlias(currentUser.id);
 
@@ -15,7 +49,19 @@ export default async function AppHomePage() {
     redirect("/app/onboarding");
   }
 
-  const queueItems = await listUserQueueItems(currentUser.id);
+  const selectedStatus = parseQueueStatusFilter(params.status);
+  const requestedPage = parseQueuePage(params.page);
+  const queueResult = await listUserQueueItems({
+    userId: currentUser.id,
+    status: selectedStatus,
+    page: requestedPage,
+    pageSize: QUEUE_PAGE_SIZE,
+  });
+  const queueItems = queueResult.items;
+  const resultLabel =
+    selectedStatus === ALL_QUEUE_STATUS_FILTER ? "all releases" : `${selectedStatus} releases`;
+  const emptyStateLabel =
+    selectedStatus === ALL_QUEUE_STATUS_FILTER ? "releases" : `${selectedStatus} releases`;
 
   return (
     <section className="space-y-4">
@@ -26,11 +72,40 @@ export default async function AppHomePage() {
         <h1 className="text-3xl font-semibold text-white">Listening queue</h1>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        {QUEUE_STATUS_FILTER_OPTIONS.map((option) => {
+          const isActive = option.value === selectedStatus;
+
+          return (
+            <Link
+              key={option.value}
+              href={getQueueHref(option.value)}
+              className={
+                isActive
+                  ? "rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white"
+                  : "rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-400 transition hover:border-white/20 hover:text-white"
+              }
+            >
+              {option.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-400">
+        <p>
+          Showing {queueItems.length} of {queueResult.totalCount} {resultLabel}.
+        </p>
+        {queueResult.totalPages > 1 ? (
+          <p>
+            Page {queueResult.currentPage} of {queueResult.totalPages}
+          </p>
+        ) : null}
+      </div>
+
       {queueItems.length === 0 ? (
         <div className="rounded-3xl border border-white/10 bg-black/20 px-5 py-6">
-          <p className="text-sm leading-7 text-zinc-400">
-            No releases have been imported yet.
-          </p>
+          <p className="text-sm leading-7 text-zinc-400">No {emptyStateLabel} found.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -100,6 +175,40 @@ export default async function AppHomePage() {
           })}
         </div>
       )}
+
+      {queueResult.totalPages > 1 ? (
+        <div className="flex items-center justify-between gap-3 rounded-3xl border border-white/10 bg-black/20 px-5 py-4">
+          {queueResult.currentPage > 1 ? (
+            <Link
+              href={getQueueHref(selectedStatus, queueResult.currentPage - 1)}
+              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:border-white/30"
+            >
+              Previous
+            </Link>
+          ) : (
+            <span className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-600">
+              Previous
+            </span>
+          )}
+
+          <span className="text-sm text-zinc-400">
+            {queueResult.currentPage} / {queueResult.totalPages}
+          </span>
+
+          {queueResult.currentPage < queueResult.totalPages ? (
+            <Link
+              href={getQueueHref(selectedStatus, queueResult.currentPage + 1)}
+              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:border-white/30"
+            >
+              Next
+            </Link>
+          ) : (
+            <span className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-600">
+              Next
+            </span>
+          )}
+        </div>
+      ) : null}
     </section>
   );
 }

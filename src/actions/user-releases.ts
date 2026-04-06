@@ -6,8 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/client";
 import { userReleases } from "@/db/schema";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
-
-type UserReleaseStatus = (typeof userReleases.$inferSelect)["status"];
+import type { UserReleaseStatus } from "@/lib/releases/user-release-status";
 
 export async function updateUserReleaseStatusAction(
   userReleaseId: string,

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 import { enrichReleaseAction } from "@/actions/releases";
 import { updateUserReleaseStatusAction } from "@/actions/user-releases";
@@ -20,9 +21,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { UserReleaseStatus } from "@/lib/releases/user-release-status";
 import { cn } from "@/lib/utils";
-
-type UserReleaseStatus = "new" | "listened" | "saved" | "skipped" | "archived";
 
 type QueueItemStatusBadgeProps = {
   userReleaseId: string;
@@ -67,7 +67,9 @@ export function QueueItemStatusBadge({
   artistName,
   diagnostics,
 }: QueueItemStatusBadgeProps) {
+  const router = useRouter();
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const formattedDates = useMemo(
     () => ({
       firstSeenAt: new Date(diagnostics.firstSeenAt).toLocaleString(),
@@ -76,6 +78,13 @@ export function QueueItemStatusBadge({
     [diagnostics.firstSeenAt, diagnostics.lastSeenAt],
   );
 
+  function updateStatus(status: UserReleaseStatus) {
+    startTransition(async () => {
+      await updateUserReleaseStatusAction(userReleaseId, status);
+      router.refresh();
+    });
+  }
+
   return (
     <>
       <DropdownMenu>
@@ -83,11 +92,12 @@ export function QueueItemStatusBadge({
           <button
             type="button"
             className={cn(
-              "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition hover:border-white/30",
+              "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition hover:border-white/30 disabled:cursor-wait disabled:opacity-60",
               STATUS_BADGE_CLASS_NAMES[currentStatus],
             )}
+            disabled={isPending}
           >
-            <span>{currentStatus}</span>
+            <span>{isPending ? "updating" : currentStatus}</span>
             <span aria-hidden="true" className="text-[10px] text-current/80">
               v
             </span>
@@ -95,28 +105,20 @@ export function QueueItemStatusBadge({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {STATUS_OPTIONS.map((option) => {
-            const formAction = updateUserReleaseStatusAction.bind(
-              null,
-              userReleaseId,
-              option.status,
-            );
-
             return (
-              <form key={option.status} action={formAction}>
-                <DropdownMenuItem asChild>
-                  <button
-                    type="submit"
-                    className="flex w-full items-center justify-between gap-4 text-left"
-                  >
-                    <span>{option.label}</span>
-                    {currentStatus === option.status ? (
-                      <span className="text-xs uppercase tracking-[0.18em] text-zinc-500">
-                        Current
-                      </span>
-                    ) : null}
-                  </button>
-                </DropdownMenuItem>
-              </form>
+              <DropdownMenuItem
+                key={option.status}
+                disabled={isPending}
+                onSelect={() => updateStatus(option.status)}
+                className="flex items-center justify-between gap-4"
+              >
+                <span>{option.label}</span>
+                {currentStatus === option.status ? (
+                  <span className="text-xs uppercase tracking-[0.18em] text-zinc-500">
+                    Current
+                  </span>
+                ) : null}
+              </DropdownMenuItem>
             );
           })}
           <DropdownMenuSeparator />

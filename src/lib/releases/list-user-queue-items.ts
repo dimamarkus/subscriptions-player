@@ -1,11 +1,39 @@
 import "server-only";
-import { desc, eq } from "drizzle-orm";
+import { and, count, desc, eq } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
 import { releases, userReleases } from "@/db/schema";
+import {
+  ALL_QUEUE_STATUS_FILTER,
+  type QueueStatusFilter,
+} from "@/lib/releases/user-release-status";
 
-export async function listUserQueueItems(userId: string) {
-  return getDb()
+type ListUserQueueItemsInput = {
+  userId: string;
+  status: QueueStatusFilter;
+  page: number;
+  pageSize: number;
+};
+
+export async function listUserQueueItems({
+  userId,
+  status,
+  page,
+  pageSize,
+}: ListUserQueueItemsInput) {
+  const filters =
+    status === ALL_QUEUE_STATUS_FILTER
+      ? [eq(userReleases.userId, userId)]
+      : [eq(userReleases.userId, userId), eq(userReleases.status, status)];
+  const whereClause = filters.length === 1 ? filters[0] : and(...filters);
+  const [{ totalCount }] = await getDb()
+    .select({ totalCount: count() })
+    .from(userReleases)
+    .where(whereClause);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const items = await getDb()
     .select({
       releaseId: releases.id,
       userReleaseId: userReleases.id,
@@ -24,6 +52,16 @@ export async function listUserQueueItems(userId: string) {
     })
     .from(userReleases)
     .innerJoin(releases, eq(userReleases.releaseId, releases.id))
-    .where(eq(userReleases.userId, userId))
-    .orderBy(desc(userReleases.lastSeenAt));
+    .where(whereClause)
+    .orderBy(desc(userReleases.lastSeenAt))
+    .limit(pageSize)
+    .offset((currentPage - 1) * pageSize);
+
+  return {
+    items,
+    totalCount,
+    totalPages,
+    currentPage,
+    pageSize,
+  };
 }
