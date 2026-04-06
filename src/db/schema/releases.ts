@@ -13,11 +13,15 @@ export const releases = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     canonicalUrl: text("canonical_url").notNull(),
     bandcampDomain: text("bandcamp_domain").notNull(),
+    bandcampItemId: text("bandcamp_item_id"),
     artistName: text("artist_name"),
     releaseTitle: text("release_title"),
     releaseType: text("release_type").notNull(),
+    coverImageUrl: text("cover_image_url"),
+    embedUrl: text("embed_url"),
     resolvedStatus: text("resolved_status").notNull().default("url_only"),
     metadataJson: jsonb("metadata_json"),
+    enrichedAt: timestamp("enriched_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),

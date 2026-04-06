@@ -7,6 +7,7 @@ import { releases, userReleases } from "@/db/schema";
 export async function listUserQueueItems(userId: string) {
   return getDb()
     .select({
+      releaseId: releases.id,
       userReleaseId: userReleases.id,
       status: userReleases.status,
       firstSeenAt: userReleases.firstSeenAt,
@@ -17,6 +18,9 @@ export async function listUserQueueItems(userId: string) {
       artistName: releases.artistName,
       releaseTitle: releases.releaseTitle,
       releaseType: releases.releaseType,
+      coverImageUrl: releases.coverImageUrl,
+      embedUrl: releases.embedUrl,
+      resolvedStatus: releases.resolvedStatus,
     })
     .from(userReleases)
     .innerJoin(releases, eq(userReleases.releaseId, releases.id))

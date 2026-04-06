@@ -1,6 +1,8 @@
+import { enrichReleaseAction } from "@/actions/releases";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { BandcampEmbedPlayer } from "@/components/bandcamp-embed-player";
 import { QueueItemStatusActions } from "@/components/queue-item-status-actions";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getServerEnv } from "@/lib/env/server";
@@ -122,7 +124,27 @@ export default async function AppHomePage() {
                 <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-zinc-400">
                   <span>Imports: {item.importCount}</span>
                   <span>Last seen: {item.lastSeenAt.toISOString()}</span>
+                  <span>Status: {item.resolvedStatus}</span>
                 </div>
+
+                {item.embedUrl ? (
+                  <BandcampEmbedPlayer
+                    src={item.embedUrl}
+                    title={item.releaseTitle ?? item.canonicalUrl}
+                  />
+                ) : (
+                  <form
+                    action={enrichReleaseAction.bind(null, item.userReleaseId)}
+                    className="mt-4"
+                  >
+                    <button
+                      type="submit"
+                      className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:border-white/30"
+                    >
+                      Retry metadata and embed
+                    </button>
+                  </form>
+                )}
 
                 <QueueItemStatusActions userReleaseId={item.userReleaseId} />
 

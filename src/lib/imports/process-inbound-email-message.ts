@@ -8,6 +8,7 @@ import {
   releases,
   userReleases,
 } from "@/db/schema";
+import { enrichRelease } from "@/lib/bandcamp/enrich-release";
 import { extractBandcampReleaseLinks } from "@/lib/bandcamp/extract-bandcamp-release-links";
 import { findActiveInboundAliasByRecipients } from "@/lib/inbound-aliases/find-active-inbound-alias-by-recipient";
 import type { ProcessInboundEmailMessage } from "@/lib/queues/inbound-email-queue";
@@ -108,6 +109,35 @@ async function upsertReleaseRecord(input: {
     .returning();
 
   return createdRelease;
+}
+
+async function maybeEnrichRelease(input: {
+  releaseId: string;
+  canonicalUrl: string;
+  releaseType: "album" | "track";
+  resolvedStatus: string;
+  embedUrl: string | null;
+  releaseTitle: string | null;
+  artistName: string | null;
+}) {
+  if (
+    input.embedUrl &&
+    input.releaseTitle &&
+    input.artistName &&
+    input.resolvedStatus === "embed_ready"
+  ) {
+    return;
+  }
+
+  try {
+    await enrichRelease({
+      releaseId: input.releaseId,
+      canonicalUrl: input.canonicalUrl,
+      releaseType: input.releaseType,
+    });
+  } catch {
+    // Keep queue import successful even if metadata enrichment fails.
+  }
 }
 
 async function upsertUserReleaseRecord(input: {
@@ -223,6 +253,16 @@ export async function processInboundEmailMessage(
       canonicalUrl: link.canonicalUrl,
       host: link.host,
       releaseType: link.releaseType,
+    });
+
+    await maybeEnrichRelease({
+      releaseId: release.id,
+      canonicalUrl: release.canonicalUrl,
+      releaseType: link.releaseType,
+      resolvedStatus: release.resolvedStatus,
+      embedUrl: release.embedUrl,
+      releaseTitle: release.releaseTitle,
+      artistName: release.artistName,
     });
 
     const userRelease = await upsertUserReleaseRecord({

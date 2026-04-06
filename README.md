@@ -4,7 +4,7 @@ A privacy-first Bandcamp listening queue built with Next.js, Clerk, Drizzle, Neo
 
 ## Current status
 
-Phase 1 foundation work has started.
+The app now has a real end-to-end foundation plus a narrow first import slice.
 
 Implemented so far:
 
@@ -14,12 +14,21 @@ Implemented so far:
 - protected `/app` shell
 - Drizzle plus Neon database foundation
 - local `users` table and authenticated user upsert
+- onboarding and forwarding-address generation
+- inbound alias rotation
+- Resend webhook route
+- Vercel Queues consumer wiring
+- narrow Bandcamp URL extraction for `album` and `track`
+- queue persistence and queue item status updates
+- imports/debug page for webhook event visibility
+- release metadata enrichment from Bandcamp pages
+- embedded Bandcamp player rendering where resolvable
 
 Planned next:
 
-- onboarding and forwarding-address generation
-- inbound email receiving via Resend
-- queue persistence and import history
+- richer queue card presentation
+- production-hardening for enrichment and embed retries
+- more robust import diagnostics
 
 ## Scripts
 
@@ -29,6 +38,7 @@ Planned next:
 - start: `pnpm start`
 - lint: `pnpm lint`
 - types: `pnpm check-types`
+- verify: `pnpm verify`
 - drizzle generate: `pnpm db:generate`
 - drizzle migrate: `pnpm db:migrate`
 - drizzle push: `pnpm db:push`
@@ -61,6 +71,7 @@ Used once inbound email and queues are wired:
 
 - `RESEND_API_KEY`
 - `RESEND_WEBHOOK_SECRET`
+- `RESEND_RECEIVING_DOMAIN`
 
 If you want to publish to Vercel Queues during local development, link the
 project and pull env first:
@@ -73,3 +84,10 @@ project and pull env first:
 - The app is server-first by default.
 - Client components should be added only for clearly interactive UI islands.
 - Clerk uses prebuilt auth UI in this phase so the team can focus on foundations instead of auth screen customization.
+
+## Deploy notes
+
+- Run `pnpm verify` before deploying.
+- Apply Drizzle migrations manually against the target database before the first real deploy.
+- Configure Resend receiving and the webhook endpoint before expecting inbound imports to work.
+- See `docs/260404SUBSCRIPTIONS_PLAYER__TEST_AND_DEPLOY_CHECKLIST.md` for the exact launch sequence.
