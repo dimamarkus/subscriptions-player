@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { BandcampEmbedPlayer } from "@/components/bandcamp-embed-player";
 import { QueueItemStatusBadge } from "@/components/queue-item-status-badge";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
+import { getBandcampDomainLabel } from "@/lib/bandcamp/get-bandcamp-domain-label";
 import { getActiveInboundAlias } from "@/lib/inbound-aliases/get-active-inbound-alias";
 import { listUserQueueItems } from "@/lib/releases/list-user-queue-items";
 
@@ -36,6 +37,8 @@ export default async function AppHomePage() {
           {queueItems.map((item) => {
             const releaseTitle = item.releaseTitle ?? item.canonicalUrl;
             const artistName = item.artistName ?? item.bandcampDomain;
+            const bandcampLabel = getBandcampDomainLabel(item.bandcampDomain);
+            const bandcampProfileUrl = `https://${item.bandcampDomain}`;
 
             return (
               <article
@@ -44,13 +47,24 @@ export default async function AppHomePage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
-                      {item.releaseType}
-                    </p>
-                    <h2 className="mt-2 text-base font-semibold text-white md:text-lg">
+                    <h2 className="text-base font-semibold text-white md:text-lg">
                       {releaseTitle}
                     </h2>
-                    <p className="mt-1 text-sm text-zinc-400">{artistName}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
+                      <span>{item.releaseType}</span>
+                      <span aria-hidden="true" className="text-zinc-700">
+                        •
+                      </span>
+                      <a
+                        href={bandcampProfileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="tracking-[0.14em] text-zinc-400 transition hover:text-white"
+                        aria-label={`${bandcampLabel} Bandcamp page`}
+                      >
+                        {bandcampLabel}
+                      </a>
+                    </div>
                   </div>
 
                   <QueueItemStatusBadge
