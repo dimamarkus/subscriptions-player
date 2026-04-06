@@ -118,7 +118,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
             return (
               <article
                 key={item.userReleaseId}
-                className="rounded-[1.75rem] border border-white/10 bg-black/20 p-4"
+                className="mx-auto w-full max-w-[700px] rounded-[1.75rem] border border-white/10 bg-black/20 p-4"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
