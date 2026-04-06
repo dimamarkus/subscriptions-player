@@ -3,6 +3,10 @@ import { auth } from "@clerk/nextjs/server";
 
 export default async function MarketingPage() {
   const { userId } = await auth();
+  const primaryHeaderLinkClass =
+    "rounded-full bg-zinc-50 px-4 py-2 text-zinc-950 transition hover:bg-zinc-200";
+  const primaryHeroLinkClass =
+    "rounded-full bg-zinc-50 px-5 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-200";
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-10">
@@ -18,10 +22,7 @@ export default async function MarketingPage() {
 
         <div className="flex items-center gap-3 text-sm font-medium">
           {userId ? (
-            <Link
-              href="/app"
-              className="rounded-full bg-white px-4 py-2 text-black transition hover:bg-zinc-200"
-            >
+            <Link href="/app" className={primaryHeaderLinkClass}>
               Open app
             </Link>
           ) : (
@@ -34,7 +35,7 @@ export default async function MarketingPage() {
               </Link>
               <Link
                 href="/sign-up"
-                className="rounded-full bg-white px-4 py-2 text-black transition hover:bg-zinc-200"
+                className={primaryHeaderLinkClass}
               >
                 Create account
               </Link>
@@ -61,7 +62,7 @@ export default async function MarketingPage() {
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
               href={userId ? "/app" : "/sign-up"}
-              className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-zinc-200"
+              className={primaryHeroLinkClass}
             >
               {userId ? "Go to your queue" : "Start with open signup"}
             </Link>

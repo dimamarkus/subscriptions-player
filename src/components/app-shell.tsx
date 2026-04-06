@@ -11,7 +11,10 @@ export function AppShell({ children }: AppShellProps) {
       <header className="border-b border-white/10 bg-black/20 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
           <div>
-            <Link href="/app" className="text-sm font-semibold tracking-[0.24em]">
+            <Link
+              href="/app"
+              className="text-inherit text-sm font-semibold tracking-[0.24em]"
+            >
               SUBSCRIPTIONS PLAYER
             </Link>
             <p className="mt-1 text-sm text-zinc-400">
@@ -20,16 +23,25 @@ export function AppShell({ children }: AppShellProps) {
           </div>
 
           <nav className="flex items-center gap-4 text-sm text-zinc-300">
-            <Link href="/app" className="transition hover:text-white">
+            <Link href="/app" className="text-inherit transition hover:text-white">
               Queue
             </Link>
-            <Link href="/app/onboarding" className="transition hover:text-white">
+            <Link
+              href="/app/onboarding"
+              className="text-inherit transition hover:text-white"
+            >
               Onboarding
             </Link>
-            <Link href="/app/imports" className="transition hover:text-white">
+            <Link
+              href="/app/imports"
+              className="text-inherit transition hover:text-white"
+            >
               Imports
             </Link>
-            <Link href="/app/settings" className="transition hover:text-white">
+            <Link
+              href="/app/settings"
+              className="text-inherit transition hover:text-white"
+            >
               Settings
             </Link>
             <UserButton />
