@@ -43,6 +43,13 @@
       "when": 1775461269829,
       "tag": "0005_windy_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775463565953,
+      "tag": "0006_demonic_nemesis",
+      "breakpoints": true
     }
   ]
 }

@@ -4,14 +4,22 @@ import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getServerEnv } from "@/lib/env/server";
 import { ensureActiveInboundAlias } from "@/lib/inbound-aliases/ensure-active-inbound-alias";
 import { formatInboundAliasAddress } from "@/lib/inbound-aliases/format-inbound-alias-address";
+import { getLatestGmailForwardingVerification } from "@/lib/inbound-emails/get-latest-gmail-forwarding-verification";
 
 export default async function OnboardingPage() {
   const user = await ensureAppUser();
   const activeAlias = await ensureActiveInboundAlias(user.id);
+  const gmailForwardingVerification = await getLatestGmailForwardingVerification(
+    user.id,
+  );
   const forwardingAddress = formatInboundAliasAddress(
     activeAlias.token,
     getServerEnv().INBOUND_EMAIL_DOMAIN,
   );
+  const gmailConfirmationUrl =
+    gmailForwardingVerification?.gmailForwardingConfirmationUrl ?? null;
+  const gmailConfirmationCode =
+    gmailForwardingVerification?.gmailForwardingConfirmationCode ?? null;
 
   return (
     <div className="space-y-8">
@@ -71,15 +79,77 @@ export default async function OnboardingPage() {
 
       <section className="grid gap-6 lg:grid-cols-2">
         <article className="rounded-3xl border border-white/10 bg-black/20 p-8">
-          <h2 className="text-xl font-semibold text-white">
-            Gmail filter setup
-          </h2>
-          <ol className="mt-5 space-y-3 text-sm leading-7 text-zinc-300">
-            <li>Open Gmail and search for emails from Bandcamp.</li>
-            <li>Choose Create filter.</li>
-            <li>Select Forward it to and paste your import address.</li>
-            <li>Apply the filter to future Bandcamp mail.</li>
+          <h2 className="text-xl font-semibold text-white">Gmail setup</h2>
+          <ol className="mt-5 space-y-4 text-sm leading-7 text-zinc-300">
+            <li>
+              In Gmail, open Settings, then{" "}
+              <span className="text-zinc-100">Forwarding and POP/IMAP</span>,
+              and add this forwarding address.
+            </li>
+            <li>
+              Wait for Gmail to send a forwarding confirmation email to your
+              import address. We will surface it here.
+            </li>
+            <li>
+              After Gmail confirms the address, create a filter for Bandcamp
+              mail and choose <span className="text-zinc-100">Forward it to</span>.
+            </li>
           </ol>
+
+          <div className="mt-6 rounded-2xl border border-white/10 bg-zinc-950 p-5">
+            <p className="text-xs uppercase tracking-[0.22em] text-zinc-500">
+              Gmail verification status
+            </p>
+
+            {gmailForwardingVerification ? (
+              <div className="mt-3 space-y-4">
+                <p className="text-sm leading-6 text-zinc-200">
+                  We received Gmail&apos;s forwarding confirmation email for{" "}
+                  <span className="font-medium text-white">{user.email}</span>.
+                  If Gmail still shows this forwarding address as pending, use
+                  the link or code below, then create your Bandcamp filter.
+                </p>
+
+                {gmailConfirmationUrl ? (
+                  <a
+                    href={gmailConfirmationUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-100 transition hover:border-emerald-400/60 hover:bg-emerald-500/15"
+                  >
+                    Open confirmation link
+                  </a>
+                ) : null}
+
+                {gmailConfirmationCode ? (
+                  <div className="space-y-2">
+                    <p className="text-xs uppercase tracking-[0.22em] text-zinc-500">
+                      Confirmation code
+                    </p>
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <code className="break-all font-mono text-sm text-white">
+                        {gmailConfirmationCode}
+                      </code>
+                      <CopyTextButton text={gmailConfirmationCode} />
+                    </div>
+                  </div>
+                ) : null}
+
+                {!gmailConfirmationUrl && !gmailConfirmationCode ? (
+                  <p className="text-sm leading-6 text-zinc-400">
+                    The Gmail setup email was received, but no confirmation link
+                    or code was extracted. Open the newest Google forwarding
+                    message in your email client if you still need to confirm it.
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-zinc-400">
+                No Gmail forwarding confirmation email has arrived yet. Add the
+                forwarding address in Gmail first, then refresh this page.
+              </p>
+            )}
+          </div>
         </article>
 
         <article className="rounded-3xl border border-white/10 bg-black/20 p-8">

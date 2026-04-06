@@ -19,6 +19,11 @@ export const inboundEmailParseStatusEnum = pgEnum("inbound_email_parse_status", 
   "failed",
 ]);
 
+export const inboundEmailTypeEnum = pgEnum("inbound_email_type", [
+  "bandcamp_import",
+  "gmail_forwarding_verification",
+]);
+
 export const inboundEmails = pgTable(
   "inbound_emails",
   {
@@ -37,6 +42,11 @@ export const inboundEmails = pgTable(
     receivedAt: timestamp("received_at", { withTimezone: true }).notNull(),
     headersJson: jsonb("headers_json"),
     rawLinksJson: jsonb("raw_links_json").notNull(),
+    emailType: inboundEmailTypeEnum("email_type")
+      .notNull()
+      .default("bandcamp_import"),
+    gmailForwardingConfirmationUrl: text("gmail_forwarding_confirmation_url"),
+    gmailForwardingConfirmationCode: text("gmail_forwarding_confirmation_code"),
     parseStatus: inboundEmailParseStatusEnum("parse_status")
       .notNull()
       .default("processing"),
@@ -53,6 +63,7 @@ export const inboundEmails = pgTable(
       table.resendEmailId,
     ),
     index("inbound_emails_user_id_idx").on(table.userId),
+    index("inbound_emails_user_id_email_type_idx").on(table.userId, table.emailType),
     index("inbound_emails_webhook_event_id_idx").on(table.webhookEventId),
   ],
 );

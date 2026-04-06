@@ -20,8 +20,9 @@ export default async function ImportsPage() {
         <h1 className="mt-4 text-3xl font-semibold text-white">Webhook events</h1>
         <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-300">
           Inbound Resend events are stored here first, then handed off to the
-          queue-driven import pipeline. Full email retrieval and parsing land in
-          the next phase.
+          queue-driven import pipeline. Bandcamp imports and Gmail forwarding
+          verification emails both flow through this endpoint, but only Bandcamp
+          mail should create queue items.
         </p>
       </section>
 
