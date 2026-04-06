@@ -8,7 +8,7 @@ export function BandcampEmbedPlayer({
   title,
 }: BandcampEmbedPlayerProps) {
   return (
-    <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-white">
+    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white">
       <iframe
         title={title}
         src={src}
