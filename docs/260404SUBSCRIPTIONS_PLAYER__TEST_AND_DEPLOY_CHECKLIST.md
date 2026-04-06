@@ -1,4 +1,4 @@
-# Subscriptions Player Test And Deploy Checklist
+# TraxHunter Player Test And Deploy Checklist
 
 This document is the exact sequence to use to test and deploy the current app safely.
 

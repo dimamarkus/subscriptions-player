@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Subscriptions Player",
+  title: "TraxHunter",
   description:
     "Forward Bandcamp emails into a privacy-first listening queue.",
 };

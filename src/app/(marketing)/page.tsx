@@ -13,7 +13,7 @@ export default async function MarketingPage() {
       <header className="flex items-center justify-between border-b border-white/10 pb-6">
         <div>
           <p className="text-sm font-semibold tracking-[0.24em] text-zinc-300">
-            SUBSCRIPTIONS PLAYER
+            TraxHunter
           </p>
           <p className="mt-2 text-sm text-zinc-400">
             A privacy-first Bandcamp listening queue built from forwarded emails.
@@ -53,7 +53,7 @@ export default async function MarketingPage() {
             Turn Bandcamp emails into a clean listening queue.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-300">
-            Subscriptions Player gives each user a personal forwarding address,
+            TraxHunter gives each user a personal forwarding address,
             imports only the Bandcamp emails they choose to send, and turns them
             into a queue of releases with strong fallbacks even when metadata is
             incomplete.

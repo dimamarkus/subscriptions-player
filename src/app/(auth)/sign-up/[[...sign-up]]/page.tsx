@@ -14,7 +14,7 @@ export default async function SignUpPage() {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <p className="text-sm font-semibold tracking-[0.24em] text-zinc-400">
-            SUBSCRIPTIONS PLAYER
+            TraxHunter
           </p>
           <h1 className="mt-4 text-3xl font-semibold text-white">
             Create your account

@@ -122,12 +122,22 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
             return (
               <article
                 key={item.userReleaseId}
-                className="mx-auto w-full max-w-[700px] rounded-[1.75rem] border border-white/10 bg-black/20 p-4"
+                className="w-full max-w-[700px] rounded-[1.75rem] border border-white/10 bg-black/20 p-4"
               >
                 <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
-                      <span>{item.releaseType}</span>
+                  <div className="min-w-0 space-y-2">
+                    {originalEmailDateLabel ? (
+                      <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-600">
+                        {originalEmailDateLabel}
+                      </p>
+                    ) : null}
+                    <h2 className="text-lg font-semibold leading-snug tracking-tight text-white md:text-xl">
+                      {releaseTitle}
+                    </h2>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-zinc-500">
+                      <span className="text-xs uppercase tracking-[0.16em] text-zinc-500">
+                        {item.releaseType}
+                      </span>
                       <span aria-hidden="true" className="text-zinc-700">
                         •
                       </span>
@@ -135,25 +145,12 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
                         href={bandcampProfileUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="tracking-[0.14em] text-zinc-400 transition hover:text-white"
+                        className="text-zinc-400 transition hover:text-zinc-200"
                         aria-label={`${bandcampLabel} Bandcamp page`}
                       >
                         {bandcampLabel}
                       </a>
-                      {originalEmailDateLabel ? (
-                        <>
-                          <span aria-hidden="true" className="text-zinc-700">
-                            •
-                          </span>
-                          <span className="tracking-[0.14em] text-zinc-400">
-                            {originalEmailDateLabel}
-                          </span>
-                        </>
-                      ) : null}
                     </div>
-                    <h2 className="text-base font-semibold text-white md:text-lg">
-                      {releaseTitle}
-                    </h2>
                   </div>
 
                   <QueueItemStatusBadge

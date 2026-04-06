@@ -15,7 +15,7 @@ export function AppShell({ children }: AppShellProps) {
               href="/app"
               className="text-inherit text-sm font-semibold tracking-[0.24em]"
             >
-              SUBSCRIPTIONS PLAYER
+              TraxHunter
             </Link>
             <p className="mt-1 text-sm text-zinc-400">
               Privacy-first Bandcamp email listening queue

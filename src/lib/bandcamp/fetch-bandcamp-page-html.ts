@@ -12,7 +12,7 @@ export async function fetchBandcampPageHtml(canonicalUrl: string) {
   const response = await fetch(canonicalUrl, {
     method: "GET",
     headers: {
-      "user-agent": "subscriptions-player/1.0 (+https://subscriptions-player.app)",
+      "user-agent": "traxhunter/1.0 (+https://traxhunter.app)",
     },
     redirect: "follow",
     signal: AbortSignal.timeout(BANDCAMP_FETCH_TIMEOUT_MS),
