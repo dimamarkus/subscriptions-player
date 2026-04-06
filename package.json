@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "check-types": "next typegen && tsc --noEmit",
+    "verify": "pnpm lint && pnpm check-types && pnpm build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
