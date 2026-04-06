@@ -47,9 +47,6 @@ export default async function AppHomePage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <h2 className="text-base font-semibold text-white md:text-lg">
-                      {releaseTitle}
-                    </h2>
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium uppercase tracking-[0.2em] text-zinc-500">
                       <span>{item.releaseType}</span>
                       <span aria-hidden="true" className="text-zinc-700">
@@ -65,6 +62,9 @@ export default async function AppHomePage() {
                         {bandcampLabel}
                       </a>
                     </div>
+                    <h2 className="text-base font-semibold text-white md:text-lg">
+                      {releaseTitle}
+                    </h2>
                   </div>
 
                   <QueueItemStatusBadge
