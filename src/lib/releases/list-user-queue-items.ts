@@ -64,7 +64,14 @@ export async function listUserQueueItems({
     const originalDates = await getDb()
       .select({
         userReleaseId: releaseImportOccurrences.userReleaseId,
-        originalEmailSentOn: sql<string | null>`min(${inboundEmails.originalEmailSentOn})`,
+        originalEmailSentOn: sql<string | null>`
+          min(
+            coalesce(
+              ${inboundEmails.originalEmailSentOn},
+              (${inboundEmails.receivedAt})::date
+            )
+          )
+        `,
       })
       .from(releaseImportOccurrences)
       .innerJoin(
