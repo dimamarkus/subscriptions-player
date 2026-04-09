@@ -2,17 +2,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { BandcampEmbedPlayer } from "@/components/bandcamp-embed-player";
+import { QueueFilters } from "@/components/queue-filters";
 import { QueueItemStatusBadge } from "@/components/queue-item-status-badge";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
 import { getBandcampDomainLabel } from "@/lib/bandcamp/get-bandcamp-domain-label";
 import { formatIsoDateLabel } from "@/lib/dates/format-iso-date-label";
-import { formatIsoMonthLabel } from "@/lib/dates/format-iso-month-label";
 import { getActiveInboundAlias } from "@/lib/inbound-aliases/get-active-inbound-alias";
 import { listUserQueueItems } from "@/lib/releases/list-user-queue-items";
 import {
-  ALL_QUEUE_MONTH_FILTER,
-  ALL_QUEUE_SOURCE_FILTER,
-  UNDATED_QUEUE_MONTH_FILTER,
   buildQueueSearchParams,
   parseQueueFilters,
   type QueueMonthFilter,
@@ -20,8 +17,6 @@ import {
 } from "@/lib/releases/queue-filters";
 import {
   ALL_QUEUE_STATUS_FILTER,
-  DEFAULT_QUEUE_STATUS_FILTER,
-  QUEUE_STATUS_FILTER_OPTIONS,
   type QueueStatusFilter,
 } from "@/lib/releases/user-release-status";
 
@@ -36,24 +31,13 @@ type AppHomePageProps = {
   }>;
 };
 
-function getQueueHref({
-  status = DEFAULT_QUEUE_STATUS_FILTER,
-  month = ALL_QUEUE_MONTH_FILTER,
-  source = ALL_QUEUE_SOURCE_FILTER,
-  page = 1,
-}: {
-  status?: QueueStatusFilter;
-  month?: QueueMonthFilter;
-  source?: QueueSourceFilter;
-  page?: number;
+function getQueuePageHref(input: {
+  status: QueueStatusFilter;
+  month: QueueMonthFilter;
+  source: QueueSourceFilter;
+  page: number;
 }) {
-  const query = buildQueueSearchParams({
-    status,
-    month,
-    source,
-    page,
-  }).toString();
-
+  const query = buildQueueSearchParams(input).toString();
   return query ? `/app?${query}` : "/app";
 }
 
@@ -81,19 +65,6 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
     pageSize: QUEUE_PAGE_SIZE,
   });
   const queueItems = queueResult.items;
-  const availableMonths = queueResult.availableMonths.includes(selectedMonth)
-    ? queueResult.availableMonths
-    : selectedMonth === ALL_QUEUE_MONTH_FILTER
-      ? queueResult.availableMonths
-      : [selectedMonth, ...queueResult.availableMonths];
-  const availableSources = queueResult.availableSources.includes(selectedSource)
-    ? queueResult.availableSources
-    : selectedSource === ALL_QUEUE_SOURCE_FILTER
-      ? queueResult.availableSources
-      : [selectedSource, ...queueResult.availableSources];
-  const hasActiveSecondaryFilters =
-    selectedMonth !== ALL_QUEUE_MONTH_FILTER ||
-    selectedSource !== ALL_QUEUE_SOURCE_FILTER;
   const resultLabel =
     selectedStatus === ALL_QUEUE_STATUS_FILTER ? "all releases" : `${selectedStatus} releases`;
   const emptyStateLabel =
@@ -108,96 +79,13 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
         <h1 className="text-3xl font-semibold text-white">Listening queue</h1>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {QUEUE_STATUS_FILTER_OPTIONS.map((option) => {
-          const isActive = option.value === selectedStatus;
-
-          return (
-            <Link
-              key={option.value}
-              href={getQueueHref({
-                status: option.value,
-                month: selectedMonth,
-                source: selectedSource,
-              })}
-              className={
-                isActive
-                  ? "rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white"
-                  : "rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-400 transition hover:border-white/20 hover:text-white"
-              }
-            >
-              {option.label}
-            </Link>
-          );
-        })}
-      </div>
-
-      <div className="rounded-3xl border border-white/10 bg-black/20 px-5 py-4">
-        <form
-          key={`${selectedStatus}:${selectedMonth}:${selectedSource}`}
-          action="/app"
-          className="flex flex-wrap items-end gap-3"
-        >
-          {selectedStatus !== DEFAULT_QUEUE_STATUS_FILTER ? (
-            <input type="hidden" name="status" value={selectedStatus} />
-          ) : null}
-
-          <label className="space-y-2">
-            <span className="block text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
-              Month
-            </span>
-            <select
-              name="month"
-              defaultValue={selectedMonth}
-              className="min-w-48 rounded-2xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-zinc-100 outline-none transition focus:border-white/25"
-            >
-              <option value={ALL_QUEUE_MONTH_FILTER}>All months</option>
-              {availableMonths.map((month) => (
-                <option key={month} value={month}>
-                  {month === UNDATED_QUEUE_MONTH_FILTER
-                    ? "Undated"
-                    : formatIsoMonthLabel(month)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-2">
-            <span className="block text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
-              Source
-            </span>
-            <select
-              name="source"
-              defaultValue={selectedSource}
-              className="min-w-48 rounded-2xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-zinc-100 outline-none transition focus:border-white/25"
-            >
-              <option value={ALL_QUEUE_SOURCE_FILTER}>All sources</option>
-              {availableSources.map((source) => (
-                <option key={source} value={source}>
-                  {getBandcampDomainLabel(source)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="submit"
-              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:border-white/30"
-            >
-              Apply filters
-            </button>
-            {hasActiveSecondaryFilters ? (
-              <Link
-                href={getQueueHref({ status: selectedStatus })}
-                className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-400 transition hover:border-white/20 hover:text-white"
-              >
-                Clear
-              </Link>
-            ) : null}
-          </div>
-        </form>
-      </div>
+      <QueueFilters
+        selectedStatus={selectedStatus}
+        selectedMonth={selectedMonth}
+        selectedSource={selectedSource}
+        availableMonths={queueResult.availableMonths}
+        availableSources={queueResult.availableSources}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-400">
         <p>
@@ -300,7 +188,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
         <div className="flex items-center justify-between gap-3 rounded-3xl border border-white/10 bg-black/20 px-5 py-4">
           {queueResult.currentPage > 1 ? (
             <Link
-              href={getQueueHref({
+              href={getQueuePageHref({
                 status: selectedStatus,
                 month: selectedMonth,
                 source: selectedSource,
@@ -322,7 +210,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
 
           {queueResult.currentPage < queueResult.totalPages ? (
             <Link
-              href={getQueueHref({
+              href={getQueuePageHref({
                 status: selectedStatus,
                 month: selectedMonth,
                 source: selectedSource,
