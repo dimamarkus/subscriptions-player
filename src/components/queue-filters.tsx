@@ -70,16 +70,10 @@ export function QueueFilters({
   return (
     <section className="rounded-[1.75rem] border border-white/10 bg-black/20 p-4 sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-3 lg:min-w-0 lg:flex-1">
-          <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
-              Filters
-            </p>
-            <p className="text-sm text-zinc-400">
-              Filter by queue status, original email month, and Bandcamp source.
-            </p>
-          </div>
-
+        <div className="space-y-2 lg:min-w-0 lg:flex-1">
+          <span className="block text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+            Status
+          </span>
           <div className="flex flex-wrap gap-2">
             {QUEUE_STATUS_FILTER_OPTIONS.map((option) => {
               const isActive = option.value === selectedStatus;
