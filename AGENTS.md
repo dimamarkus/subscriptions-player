@@ -44,3 +44,5 @@ The Clerk middleware (`src/proxy.ts`) validates the publishable key format on ev
 - **No Docker** — the app is fully serverless-oriented. No `docker-compose` or `Dockerfile`.
 - **Vercel Queues** are required for the email import pipeline but not for the core UI/dev server.
 - **`pnpm.onlyBuiltDependencies`** in `package.json` lists packages allowed to run postinstall scripts. If `pnpm install` warns about ignored build scripts, they're non-blocking.
+- **Clerk client-trust (bot detection)** blocks headless browser sign-in by default. To automate sign-in for testing, create a user via the Clerk Backend API (`POST https://api.clerk.com/v1/users`) with `bypass_client_trust: true` set on the user (`PATCH /v1/users/{id}`). Then sign in via Clerk's UI form or use a sign-in token (`POST /v1/sign_in_tokens`).
+- **New user redirect** — first visit to `/app` after account creation may redirect to `/app/settings` for onboarding (forwarding address generation).
