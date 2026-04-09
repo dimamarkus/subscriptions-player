@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AutoSubmitForm } from "@/components/auto-submit-form";
 import { getBandcampDomainLabel } from "@/lib/bandcamp/get-bandcamp-domain-label";
 import { formatIsoMonthLabel } from "@/lib/dates/format-iso-month-label";
 import {
@@ -100,7 +101,7 @@ export function QueueFilters({
           </div>
         </div>
 
-        <form
+        <AutoSubmitForm
           key={`${selectedStatus}:${selectedMonth}:${selectedSource}`}
           action="/app"
           className="grid gap-3 sm:grid-cols-2 lg:min-w-[30rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
@@ -148,12 +149,6 @@ export function QueueFilters({
           </label>
 
           <div className="flex flex-wrap items-center gap-2 lg:self-end">
-            <button
-              type="submit"
-              className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:border-white/30"
-            >
-              Apply
-            </button>
             {hasActiveSecondaryFilters ? (
               <Link
                 href={getQueueHref({ status: selectedStatus })}
@@ -163,7 +158,7 @@ export function QueueFilters({
               </Link>
             ) : null}
           </div>
-        </form>
+        </AutoSubmitForm>
       </div>
     </section>
   );
