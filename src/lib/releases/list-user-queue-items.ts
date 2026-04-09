@@ -1,8 +1,15 @@
 import "server-only";
-import { and, count, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNull, sql } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
 import { inboundEmails, releaseImportOccurrences, releases, userReleases } from "@/db/schema";
+import {
+  ALL_QUEUE_MONTH_FILTER,
+  ALL_QUEUE_SOURCE_FILTER,
+  UNDATED_QUEUE_MONTH_FILTER,
+  type QueueMonthFilter,
+  type QueueSourceFilter,
+} from "@/lib/releases/queue-filters";
 import {
   ALL_QUEUE_STATUS_FILTER,
   type QueueStatusFilter,
@@ -11,6 +18,8 @@ import {
 type ListUserQueueItemsInput = {
   userId: string;
   status: QueueStatusFilter;
+  month: QueueMonthFilter;
+  source: QueueSourceFilter;
   page: number;
   pageSize: number;
 };
@@ -18,22 +27,81 @@ type ListUserQueueItemsInput = {
 export async function listUserQueueItems({
   userId,
   status,
+  month,
+  source,
   page,
   pageSize,
 }: ListUserQueueItemsInput) {
-  const filters =
-    status === ALL_QUEUE_STATUS_FILTER
-      ? [eq(userReleases.userId, userId)]
-      : [eq(userReleases.userId, userId), eq(userReleases.status, status)];
-  const whereClause = filters.length === 1 ? filters[0] : and(...filters);
-  const [{ totalCount }] = await getDb()
+  const db = getDb();
+  const originalEmailDates = db
+    .select({
+      userReleaseId: releaseImportOccurrences.userReleaseId,
+      originalEmailSentOn: sql<string | null>`
+        min(
+          coalesce(
+            ${inboundEmails.originalEmailSentOn},
+            (${inboundEmails.receivedAt})::date
+          )
+        )
+      `.as("original_email_sent_on"),
+      originalEmailMonth:
+        sql<string | null>`
+          to_char(
+            date_trunc(
+              'month',
+              min(
+                coalesce(
+                  ${inboundEmails.originalEmailSentOn},
+                  (${inboundEmails.receivedAt})::date
+                )
+              )
+            ),
+            'YYYY-MM'
+          )
+        `.as("original_email_month"),
+    })
+    .from(releaseImportOccurrences)
+    .innerJoin(
+      inboundEmails,
+      eq(releaseImportOccurrences.inboundEmailId, inboundEmails.id),
+    )
+    .groupBy(releaseImportOccurrences.userReleaseId)
+    .as("original_email_dates");
+
+  function buildWhereClause(filterValues: {
+    month: QueueMonthFilter;
+    source: QueueSourceFilter;
+  }) {
+    const filters = [eq(userReleases.userId, userId)];
+
+    if (status !== ALL_QUEUE_STATUS_FILTER) {
+      filters.push(eq(userReleases.status, status));
+    }
+
+    if (filterValues.source !== ALL_QUEUE_SOURCE_FILTER) {
+      filters.push(eq(releases.bandcampDomain, filterValues.source));
+    }
+
+    if (filterValues.month === UNDATED_QUEUE_MONTH_FILTER) {
+      filters.push(isNull(originalEmailDates.originalEmailMonth));
+    } else if (filterValues.month !== ALL_QUEUE_MONTH_FILTER) {
+      filters.push(eq(originalEmailDates.originalEmailMonth, filterValues.month));
+    }
+
+    return filters.length === 1 ? filters[0] : and(...filters);
+  }
+
+  const whereClause = buildWhereClause({ month, source });
+  const [{ totalCount }] = await db
     .select({ totalCount: count() })
     .from(userReleases)
+    .innerJoin(releases, eq(userReleases.releaseId, releases.id))
+    .leftJoin(originalEmailDates, eq(originalEmailDates.userReleaseId, userReleases.id))
     .where(whereClause);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const items = await getDb()
+  const items = await db
     .select({
       releaseId: releases.id,
       userReleaseId: userReleases.id,
@@ -49,57 +117,56 @@ export async function listUserQueueItems({
       coverImageUrl: releases.coverImageUrl,
       embedUrl: releases.embedUrl,
       resolvedStatus: releases.resolvedStatus,
+      originalEmailSentOn: originalEmailDates.originalEmailSentOn,
     })
     .from(userReleases)
     .innerJoin(releases, eq(userReleases.releaseId, releases.id))
+    .leftJoin(originalEmailDates, eq(originalEmailDates.userReleaseId, userReleases.id))
     .where(whereClause)
     .orderBy(desc(userReleases.lastSeenAt))
     .limit(pageSize)
     .offset((currentPage - 1) * pageSize);
+  const availableMonthRows = await db
+    .select({
+      originalEmailMonth: originalEmailDates.originalEmailMonth,
+    })
+    .from(userReleases)
+    .innerJoin(releases, eq(userReleases.releaseId, releases.id))
+    .leftJoin(originalEmailDates, eq(originalEmailDates.userReleaseId, userReleases.id))
+    .where(
+      buildWhereClause({
+        month: ALL_QUEUE_MONTH_FILTER,
+        source,
+      }),
+    )
+    .groupBy(originalEmailDates.originalEmailMonth)
+    .orderBy(sql`${originalEmailDates.originalEmailMonth} desc nulls last`);
 
-  const userReleaseIds = items.map((item) => item.userReleaseId);
-  const originalDatesByUserReleaseId = new Map<string, string>();
-
-  if (userReleaseIds.length > 0) {
-    const originalDates = await getDb()
-      .select({
-        userReleaseId: releaseImportOccurrences.userReleaseId,
-        originalEmailSentOn: sql<string | null>`
-          min(
-            coalesce(
-              ${inboundEmails.originalEmailSentOn},
-              (${inboundEmails.receivedAt})::date
-            )
-          )
-        `,
-      })
-      .from(releaseImportOccurrences)
-      .innerJoin(
-        inboundEmails,
-        eq(releaseImportOccurrences.inboundEmailId, inboundEmails.id),
-      )
-      .where(inArray(releaseImportOccurrences.userReleaseId, userReleaseIds))
-      .groupBy(releaseImportOccurrences.userReleaseId);
-
-    for (const row of originalDates) {
-      if (row.originalEmailSentOn) {
-        originalDatesByUserReleaseId.set(
-          row.userReleaseId,
-          row.originalEmailSentOn,
-        );
-      }
-    }
-  }
+  const availableSourceRows = await db
+    .select({
+      source: releases.bandcampDomain,
+    })
+    .from(userReleases)
+    .innerJoin(releases, eq(userReleases.releaseId, releases.id))
+    .leftJoin(originalEmailDates, eq(originalEmailDates.userReleaseId, userReleases.id))
+    .where(
+      buildWhereClause({
+        month,
+        source: ALL_QUEUE_SOURCE_FILTER,
+      }),
+    )
+    .groupBy(releases.bandcampDomain)
+    .orderBy(asc(releases.bandcampDomain));
 
   return {
-    items: items.map((item) => ({
-      ...item,
-      originalEmailSentOn:
-        originalDatesByUserReleaseId.get(item.userReleaseId) ?? null,
-    })),
+    items,
     totalCount,
     totalPages,
     currentPage,
     pageSize,
+    availableMonths: availableMonthRows.map((row) =>
+      row.originalEmailMonth ?? UNDATED_QUEUE_MONTH_FILTER,
+    ),
+    availableSources: availableSourceRows.map((row) => row.source),
   };
 }
