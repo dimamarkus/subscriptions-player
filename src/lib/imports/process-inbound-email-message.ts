@@ -18,6 +18,20 @@ import { getReceivedEmail } from "@/lib/resend/get-received-email";
 
 export class NonRetryableImportError extends Error {}
 
+function parseIsoDateFromTimestamp(timestamp: string | null | undefined) {
+  if (!timestamp) {
+    return null;
+  }
+
+  const parsedTimestamp = new Date(timestamp);
+
+  if (Number.isNaN(parsedTimestamp.getTime())) {
+    return null;
+  }
+
+  return parsedTimestamp.toISOString().slice(0, 10);
+}
+
 async function upsertInboundEmailRecord(input: {
   webhookEventId: string;
   userId: string;
@@ -244,6 +258,11 @@ export async function processInboundEmailMessage(
     html: receivedEmail.html,
     text: receivedEmail.text,
   });
+  const receivedEmailSentOn = parseIsoDateFromTimestamp(receivedEmail.created_at);
+  const originalEmailSentOn =
+    gmailForwardingVerification
+      ? null
+      : originalBandcampEmailSentOn ?? receivedEmailSentOn;
 
   const inboundEmail = await upsertInboundEmailRecord({
     webhookEventId: message.webhookEventId,
@@ -262,7 +281,7 @@ export async function processInboundEmailMessage(
     emailType: gmailForwardingVerification
       ? "gmail_forwarding_verification"
       : "bandcamp_import",
-    originalEmailSentOn: originalBandcampEmailSentOn,
+    originalEmailSentOn,
     gmailForwardingConfirmationUrl:
       gmailForwardingVerification?.confirmationUrl ?? null,
     gmailForwardingConfirmationCode:
