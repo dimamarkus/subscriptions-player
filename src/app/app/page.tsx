@@ -131,9 +131,11 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
                         {originalEmailDateLabel}
                       </p>
                     ) : null}
-                    <h2 className="text-lg font-semibold leading-snug tracking-tight text-white md:text-xl">
-                      {releaseTitle}
-                    </h2>
+                    {item.embedUrl ? null : (
+                      <h2 className="text-lg font-semibold leading-snug tracking-tight text-white md:text-xl">
+                        {releaseTitle}
+                      </h2>
+                    )}
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-zinc-500">
                       <span className="text-xs uppercase tracking-[0.16em] text-zinc-500">
                         {item.releaseType}
