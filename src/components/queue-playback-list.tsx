@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
-import { BandcampEmbedPlayer } from "@/components/bandcamp-embed-player";
+import { useNowPlaying } from "@/components/now-playing-provider";
 import { QueueItemStatusBadge } from "@/components/queue-item-status-badge";
-import { UserReleaseStatusQuickActions } from "@/components/user-release-status-quick-actions";
 import { formatIsoDateLabel } from "@/lib/dates/format-iso-date-label";
 import { formatReleaseDisplay } from "@/lib/releases/format-release-display";
 import {
@@ -35,12 +34,6 @@ type QueuePlaybackItem = {
   originalEmailSentOn: string | null;
   resolvedStatus: string;
   embedUrl: string | null;
-};
-
-type ActivePlaybackItem = QueuePlaybackItem & {
-  displayTitle: string;
-  detailsArtistName: string;
-  bandcampLabel: string;
 };
 
 type QueuePlaybackListProps = {
@@ -79,22 +72,11 @@ export function QueuePlaybackList({
   selectedMonth,
   selectedSource,
 }: QueuePlaybackListProps) {
-  const [activeItem, setActiveItem] = useState<ActivePlaybackItem | null>(null);
+  const { activeItem, playItem, updateActiveItemStatus } = useNowPlaying();
   const [hoveredArtItemId, setHoveredArtItemId] = useState<string | null>(null);
-  const activeDisplay = useMemo(
-    () =>
-      activeItem
-        ? {
-            displayTitle: activeItem.displayTitle,
-            detailsArtistName: activeItem.detailsArtistName,
-            bandcampLabel: activeItem.bandcampLabel,
-          }
-        : null,
-    [activeItem],
-  );
 
   return (
-    <div className={cn("space-y-4", activeItem ? "pb-80 md:pb-72" : undefined)}>
+    <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-400">
         <div className="space-y-1">
           <p>
@@ -140,6 +122,7 @@ export function QueuePlaybackList({
               ? formatIsoDateLabel(item.originalEmailSentOn)
               : null;
             const isActive = item.userReleaseId === activeItem?.userReleaseId;
+            const effectiveStatus = isActive ? activeItem.status : item.status;
             const isArtHovered = hoveredArtItemId === item.userReleaseId;
             const canPlay = Boolean(item.embedUrl);
             const artLabel = canPlay
@@ -152,7 +135,7 @@ export function QueuePlaybackList({
                 className={cn(
                   "scroll-mb-[18rem] rounded-[1.75rem] border border-white/10 bg-black/20 p-4 transition md:scroll-mb-[14rem]",
                   "h-full w-full",
-                  item.status !== "new" && !isActive ? "opacity-75" : undefined,
+                  effectiveStatus !== "new" && !isActive ? "opacity-75" : undefined,
                   isActive
                     ? "border-sky-400/30 bg-linear-to-br from-sky-400/[0.12] via-sky-500/[0.05] to-black/40 shadow-[0_0_0_1px_rgba(56,189,248,0.08),0_18px_50px_rgba(8,47,73,0.22)]"
                     : undefined,
@@ -166,7 +149,7 @@ export function QueuePlaybackList({
                         return;
                       }
 
-                      setActiveItem({
+                      playItem({
                         ...item,
                         displayTitle,
                         detailsArtistName,
@@ -276,9 +259,10 @@ export function QueuePlaybackList({
 
                       <QueueItemStatusBadge
                         userReleaseId={item.userReleaseId}
-                        currentStatus={item.status}
+                        currentStatus={effectiveStatus}
                         releaseTitle={displayTitle}
                         artistName={detailsArtistName}
+                        onStatusChange={isActive ? updateActiveItemStatus : undefined}
                         diagnostics={{
                           canonicalUrl: item.canonicalUrl,
                           bandcampDomain: item.bandcampDomain,
@@ -354,68 +338,6 @@ export function QueuePlaybackList({
               Next
             </span>
           )}
-        </div>
-      ) : null}
-
-      {activeItem?.embedUrl && activeDisplay ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-sky-400/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.95),rgba(9,12,22,0.98))] shadow-[0_-18px_60px_rgba(2,6,23,0.5)] backdrop-blur-xl">
-          <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 pr-12 sm:px-6 sm:pr-14 lg:flex-row lg:items-center lg:justify-between">
-            <button
-              type="button"
-              onClick={() => setActiveItem(null)}
-              aria-label="Close now playing"
-              className="absolute right-4 top-4 inline-flex size-7 items-center justify-center rounded-full border border-white/10 text-sm text-zinc-400 transition hover:border-white/25 hover:text-white sm:right-6"
-            >
-              ×
-            </button>
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-200/65">
-                Now playing
-              </p>
-              <div className="mt-2 min-w-0">
-                <p className="truncate text-base font-semibold text-white">
-                  {activeDisplay.displayTitle}
-                </p>
-                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium uppercase tracking-[0.16em] text-zinc-400">
-                  <span>{activeItem.releaseType}</span>
-                  <span aria-hidden="true" className="text-zinc-700">
-                    •
-                  </span>
-                  <a
-                    href={`https://${activeItem.bandcampDomain}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="transition hover:text-white"
-                  >
-                    {activeDisplay.bandcampLabel}
-                  </a>
-                </div>
-              </div>
-              <div className="mt-4">
-                <UserReleaseStatusQuickActions
-                  userReleaseId={activeItem.userReleaseId}
-                  currentStatus={activeItem.status}
-                  onStatusChange={(status) => {
-                    setActiveItem((currentValue) =>
-                      currentValue
-                        ? {
-                            ...currentValue,
-                            status,
-                          }
-                        : currentValue,
-                    );
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className="w-full max-w-2xl">
-              <BandcampEmbedPlayer
-                src={activeItem.embedUrl}
-                title={activeDisplay.displayTitle}
-              />
-            </div>
-          </div>
         </div>
       ) : null}
     </div>

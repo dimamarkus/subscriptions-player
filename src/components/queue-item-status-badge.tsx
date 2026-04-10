@@ -34,6 +34,7 @@ type QueueItemStatusBadgeProps = {
   currentStatus: UserReleaseStatus;
   releaseTitle: string;
   artistName: string;
+  onStatusChange?: (status: UserReleaseStatus) => void;
   diagnostics: {
     canonicalUrl: string;
     bandcampDomain: string;
@@ -52,6 +53,7 @@ export function QueueItemStatusBadge({
   currentStatus,
   releaseTitle,
   artistName,
+  onStatusChange,
   diagnostics,
 }: QueueItemStatusBadgeProps) {
   const router = useRouter();
@@ -75,6 +77,7 @@ export function QueueItemStatusBadge({
   function updateStatus(status: UserReleaseStatus) {
     startTransition(async () => {
       await updateUserReleaseStatusAction(userReleaseId, status);
+      onStatusChange?.(status);
       router.refresh();
     });
   }

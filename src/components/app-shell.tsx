@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 
+import { AppShellPlaybackFrame } from "@/components/app-shell-playback-frame";
+
 type AppShellProps = {
   children: React.ReactNode;
 };
@@ -43,9 +45,7 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 py-10">
-        {children}
-      </main>
+      <AppShellPlaybackFrame>{children}</AppShellPlaybackFrame>
     </div>
   );
 }

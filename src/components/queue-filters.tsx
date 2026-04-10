@@ -77,7 +77,11 @@ export function QueueFilters({
   return (
     <section className="rounded-[1.75rem] border border-white/10 bg-black/20 p-4 sm:p-5">
       <div className="space-y-4">
-        <form action="/app" className="flex flex-col gap-3 md:flex-row md:items-end">
+        <AutoSubmitForm
+          action="/app"
+          submitOnChange={false}
+          className="flex flex-col gap-3 md:flex-row md:items-end"
+        >
           {selectedStatus !== DEFAULT_QUEUE_STATUS_FILTER ? (
             <input type="hidden" name="status" value={selectedStatus} />
           ) : null}
@@ -110,7 +114,7 @@ export function QueueFilters({
               Search
             </button>
           </div>
-        </form>
+        </AutoSubmitForm>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2 lg:min-w-0 lg:flex-1">
