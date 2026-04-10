@@ -120,8 +120,9 @@ export function QueuePlaybackList({
         >
           {items.map((item) => {
             const releaseTitle = item.releaseTitle ?? item.canonicalUrl;
-            const artistName = item.artistName ?? item.bandcampDomain;
             const bandcampLabel = getBandcampDomainLabel(item.bandcampDomain);
+            const artistName = item.artistName;
+            const detailsArtistName = artistName ?? bandcampLabel;
             const originalEmailDateLabel = item.originalEmailSentOn
               ? formatIsoDateLabel(item.originalEmailSentOn)
               : null;
@@ -246,7 +247,11 @@ export function QueuePlaybackList({
                         <h2 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-white sm:text-lg">
                           {releaseTitle}
                         </h2>
-                        <p className="truncate text-sm text-zinc-400">{artistName}</p>
+                        {artistName ? (
+                          <p className="truncate text-sm text-zinc-400">
+                            {artistName}
+                          </p>
+                        ) : null}
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
                           <span>{item.releaseType}</span>
                           <span aria-hidden="true" className="text-zinc-700">
@@ -260,7 +265,7 @@ export function QueuePlaybackList({
                         userReleaseId={item.userReleaseId}
                         currentStatus={item.status}
                         releaseTitle={releaseTitle}
-                        artistName={artistName}
+                        artistName={detailsArtistName}
                         diagnostics={{
                           canonicalUrl: item.canonicalUrl,
                           bandcampDomain: item.bandcampDomain,
