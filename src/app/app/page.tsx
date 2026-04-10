@@ -61,6 +61,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
     artistName: item.artistName,
     releaseTitle: item.releaseTitle,
     releaseType: item.releaseType,
+    coverImageUrl: item.coverImageUrl,
     importCount: item.importCount,
     firstSeenAt: item.firstSeenAt.toISOString(),
     lastSeenAt: item.lastSeenAt.toISOString(),
