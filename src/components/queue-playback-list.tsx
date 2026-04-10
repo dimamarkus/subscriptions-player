@@ -43,12 +43,14 @@ type QueuePlaybackListProps = {
   currentPage: number;
   resultLabel: string;
   emptyStateLabel: string;
+  selectedQuery: string;
   selectedStatus: QueueStatusFilter;
   selectedMonth: QueueMonthFilter;
   selectedSource: QueueSourceFilter;
 };
 
 function getQueuePageHref(input: {
+  query: string;
   status: QueueStatusFilter;
   month: QueueMonthFilter;
   source: QueueSourceFilter;
@@ -65,6 +67,7 @@ export function QueuePlaybackList({
   currentPage,
   resultLabel,
   emptyStateLabel,
+  selectedQuery,
   selectedStatus,
   selectedMonth,
   selectedSource,
@@ -91,9 +94,17 @@ export function QueuePlaybackList({
   return (
     <div className={cn("space-y-4", activeItem ? "pb-80 md:pb-72" : undefined)}>
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-400">
-        <p>
-          Showing {items.length} of {totalCount} {resultLabel}.
-        </p>
+        <div className="space-y-1">
+          <p>
+            Showing {items.length} of {totalCount} {resultLabel}.
+          </p>
+          {selectedQuery ? (
+            <p className="text-xs text-zinc-500">
+              Searching titles, artists, and links for{" "}
+              <span className="font-medium text-zinc-300">{selectedQuery}</span>.
+            </p>
+          ) : null}
+        </div>
         {totalPages > 1 ? (
           <p>
             Page {currentPage} of {totalPages}
@@ -103,7 +114,15 @@ export function QueuePlaybackList({
 
       {items.length === 0 ? (
         <div className="rounded-3xl border border-white/10 bg-black/20 px-5 py-6">
-          <p className="text-sm leading-7 text-zinc-400">No {emptyStateLabel} found.</p>
+          <p className="text-sm leading-7 text-zinc-400">
+            {selectedQuery
+              ? `No ${emptyStateLabel} match `
+              : `No ${emptyStateLabel} found.`}
+            {selectedQuery ? (
+              <span className="font-medium text-zinc-300">{selectedQuery}</span>
+            ) : null}
+            {selectedQuery ? "." : null}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
@@ -286,6 +305,7 @@ export function QueuePlaybackList({
           {currentPage > 1 ? (
             <Link
               href={getQueuePageHref({
+                query: selectedQuery,
                 status: selectedStatus,
                 month: selectedMonth,
                 source: selectedSource,
@@ -308,6 +328,7 @@ export function QueuePlaybackList({
           {currentPage < totalPages ? (
             <Link
               href={getQueuePageHref({
+                query: selectedQuery,
                 status: selectedStatus,
                 month: selectedMonth,
                 source: selectedSource,

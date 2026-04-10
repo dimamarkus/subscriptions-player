@@ -17,6 +17,7 @@ const QUEUE_PAGE_SIZE = 24;
 type AppHomePageProps = {
   searchParams: Promise<{
     page?: string | string[];
+    q?: string | string[];
     status?: string | string[];
     month?: string | string[];
     source?: string | string[];
@@ -32,6 +33,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
   }
 
   const {
+    query: selectedQuery,
     status: selectedStatus,
     month: selectedMonth,
     source: selectedSource,
@@ -39,6 +41,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
   } = parseQueueFilters(params);
   const queueResult = await listUserQueueItems({
     userId: currentUser.id,
+    query: selectedQuery,
     status: selectedStatus,
     month: selectedMonth,
     source: selectedSource,
@@ -77,6 +80,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
       </div>
 
       <QueueFilters
+        selectedQuery={selectedQuery}
         selectedStatus={selectedStatus}
         selectedMonth={selectedMonth}
         selectedSource={selectedSource}
@@ -90,6 +94,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
         currentPage={queueResult.currentPage}
         resultLabel={resultLabel}
         emptyStateLabel={emptyStateLabel}
+        selectedQuery={selectedQuery}
         selectedStatus={selectedStatus}
         selectedMonth={selectedMonth}
         selectedSource={selectedSource}
