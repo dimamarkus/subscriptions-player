@@ -20,10 +20,8 @@ type AppHomePageProps = {
     status?: string | string[];
     month?: string | string[];
     source?: string | string[];
-    layout?: string | string[];
   }>;
 };
-
 export default async function AppHomePage({ searchParams }: AppHomePageProps) {
   const params = await searchParams;
   const currentUser = await ensureAppUser();
@@ -37,7 +35,6 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
     status: selectedStatus,
     month: selectedMonth,
     source: selectedSource,
-    layout: selectedLayout,
     page: requestedPage,
   } = parseQueueFilters(params);
   const queueResult = await listUserQueueItems({
@@ -83,11 +80,9 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
         selectedStatus={selectedStatus}
         selectedMonth={selectedMonth}
         selectedSource={selectedSource}
-        selectedLayout={selectedLayout}
         availableMonths={queueResult.availableMonths}
         availableSources={queueResult.availableSources}
       />
-
       <QueuePlaybackList
         items={playbackItems}
         totalCount={queueResult.totalCount}
@@ -98,7 +93,6 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
         selectedStatus={selectedStatus}
         selectedMonth={selectedMonth}
         selectedSource={selectedSource}
-        selectedLayout={selectedLayout}
       />
     </section>
   );

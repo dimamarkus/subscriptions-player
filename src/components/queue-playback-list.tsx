@@ -10,8 +10,6 @@ import { getBandcampDomainLabel } from "@/lib/bandcamp/get-bandcamp-domain-label
 import { formatIsoDateLabel } from "@/lib/dates/format-iso-date-label";
 import {
   buildQueueSearchParams,
-  DOUBLE_QUEUE_LAYOUT,
-  type QueueLayout,
   type QueueMonthFilter,
   type QueueSourceFilter,
 } from "@/lib/releases/queue-filters";
@@ -48,14 +46,12 @@ type QueuePlaybackListProps = {
   selectedStatus: QueueStatusFilter;
   selectedMonth: QueueMonthFilter;
   selectedSource: QueueSourceFilter;
-  selectedLayout: QueueLayout;
 };
 
 function getQueuePageHref(input: {
   status: QueueStatusFilter;
   month: QueueMonthFilter;
   source: QueueSourceFilter;
-  layout: QueueLayout;
   page: number;
 }) {
   const query = buildQueueSearchParams(input).toString();
@@ -72,7 +68,6 @@ export function QueuePlaybackList({
   selectedStatus,
   selectedMonth,
   selectedSource,
-  selectedLayout,
 }: QueuePlaybackListProps) {
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
   const [hoveredArtItemId, setHoveredArtItemId] = useState<string | null>(null);
@@ -111,13 +106,7 @@ export function QueuePlaybackList({
           <p className="text-sm leading-7 text-zinc-400">No {emptyStateLabel} found.</p>
         </div>
       ) : (
-        <div
-          className={
-            selectedLayout === DOUBLE_QUEUE_LAYOUT
-              ? "grid grid-cols-1 gap-3 lg:grid-cols-2"
-              : "grid grid-cols-1 gap-3"
-          }
-        >
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {items.map((item) => {
             const releaseTitle = item.releaseTitle ?? item.canonicalUrl;
             const bandcampLabel = getBandcampDomainLabel(item.bandcampDomain);
@@ -141,9 +130,7 @@ export function QueuePlaybackList({
                 }}
                 className={cn(
                   "scroll-mb-[18rem] rounded-[1.75rem] border border-white/10 bg-black/20 p-4 md:scroll-mb-[14rem]",
-                  selectedLayout === DOUBLE_QUEUE_LAYOUT
-                    ? "h-full w-full"
-                    : "w-full max-w-[700px]",
+                  "h-full w-full",
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -190,11 +177,7 @@ export function QueuePlaybackList({
                         src={item.coverImageUrl}
                         alt={`${releaseTitle} cover art`}
                         fill
-                        sizes={
-                          selectedLayout === DOUBLE_QUEUE_LAYOUT
-                            ? "(min-width: 1024px) 96px, 80px"
-                            : "(min-width: 640px) 96px, 80px"
-                        }
+                        sizes="(min-width: 1024px) 96px, 80px"
                         className={cn(
                           "object-cover transition duration-200",
                           isArtHovered
@@ -306,7 +289,6 @@ export function QueuePlaybackList({
                 status: selectedStatus,
                 month: selectedMonth,
                 source: selectedSource,
-                layout: selectedLayout,
                 page: currentPage - 1,
               })}
               className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:border-white/30"
@@ -329,7 +311,6 @@ export function QueuePlaybackList({
                 status: selectedStatus,
                 month: selectedMonth,
                 source: selectedSource,
-                layout: selectedLayout,
                 page: currentPage + 1,
               })}
               className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:border-white/30"

@@ -8,8 +8,6 @@ import {
 export const ALL_QUEUE_MONTH_FILTER = "all";
 export const UNDATED_QUEUE_MONTH_FILTER = "undated";
 export const ALL_QUEUE_SOURCE_FILTER = "all";
-export const DEFAULT_QUEUE_LAYOUT = "single";
-export const DOUBLE_QUEUE_LAYOUT = "double";
 
 export type QueueMonthValue = `${number}${number}${number}${number}-${number}${number}`;
 export type QueueMonthFilter =
@@ -17,16 +15,12 @@ export type QueueMonthFilter =
   | typeof UNDATED_QUEUE_MONTH_FILTER
   | QueueMonthValue;
 export type QueueSourceFilter = typeof ALL_QUEUE_SOURCE_FILTER | string;
-export type QueueLayout =
-  | typeof DEFAULT_QUEUE_LAYOUT
-  | typeof DOUBLE_QUEUE_LAYOUT;
 
 type QueueFiltersSearchParams = {
   page?: string | string[];
   status?: string | string[];
   month?: string | string[];
   source?: string | string[];
-  layout?: string | string[];
 };
 
 type BuildQueueSearchParamsInput = {
@@ -34,7 +28,6 @@ type BuildQueueSearchParamsInput = {
   status?: QueueStatusFilter;
   month?: QueueMonthFilter;
   source?: QueueSourceFilter;
-  layout?: QueueLayout;
 };
 
 function getFirstSearchParamValue(input: string | string[] | undefined) {
@@ -81,18 +74,6 @@ export function parseQueueSourceFilter(
   return isBandcampSourceValue(value) ? value.toLowerCase() : ALL_QUEUE_SOURCE_FILTER;
 }
 
-export function parseQueueLayout(
-  input: string | string[] | undefined,
-): QueueLayout {
-  const value = getFirstSearchParamValue(input);
-
-  if (!value) {
-    return DEFAULT_QUEUE_LAYOUT;
-  }
-
-  return value === DOUBLE_QUEUE_LAYOUT ? DOUBLE_QUEUE_LAYOUT : DEFAULT_QUEUE_LAYOUT;
-}
-
 export function parseQueueFilters(
   input: QueueFiltersSearchParams,
 ): {
@@ -100,14 +81,12 @@ export function parseQueueFilters(
   status: QueueStatusFilter;
   month: QueueMonthFilter;
   source: QueueSourceFilter;
-  layout: QueueLayout;
 } {
   return {
     page: parseQueuePage(input.page),
     status: parseQueueStatusFilter(input.status),
     month: parseQueueMonthFilter(input.month),
     source: parseQueueSourceFilter(input.source),
-    layout: parseQueueLayout(input.layout),
   };
 }
 
@@ -116,7 +95,6 @@ export function buildQueueSearchParams({
   status = DEFAULT_QUEUE_STATUS_FILTER,
   month = ALL_QUEUE_MONTH_FILTER,
   source = ALL_QUEUE_SOURCE_FILTER,
-  layout = DEFAULT_QUEUE_LAYOUT,
 }: BuildQueueSearchParamsInput) {
   const params = new URLSearchParams();
 
@@ -130,10 +108,6 @@ export function buildQueueSearchParams({
 
   if (source !== ALL_QUEUE_SOURCE_FILTER) {
     params.set("source", source);
-  }
-
-  if (layout !== DEFAULT_QUEUE_LAYOUT) {
-    params.set("layout", layout);
   }
 
   if (page > 1) {
