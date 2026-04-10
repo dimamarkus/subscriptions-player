@@ -18,6 +18,7 @@ export type QueueSourceFilter = typeof ALL_QUEUE_SOURCE_FILTER | string;
 
 type QueueFiltersSearchParams = {
   page?: string | string[];
+  q?: string | string[];
   status?: string | string[];
   month?: string | string[];
   source?: string | string[];
@@ -25,10 +26,13 @@ type QueueFiltersSearchParams = {
 
 type BuildQueueSearchParamsInput = {
   page?: number;
+  query?: string;
   status?: QueueStatusFilter;
   month?: QueueMonthFilter;
   source?: QueueSourceFilter;
 };
+
+const MAX_QUEUE_QUERY_LENGTH = 120;
 
 function getFirstSearchParamValue(input: string | string[] | undefined) {
   return Array.isArray(input) ? input[0] : input;
@@ -74,16 +78,30 @@ export function parseQueueSourceFilter(
   return isBandcampSourceValue(value) ? value.toLowerCase() : ALL_QUEUE_SOURCE_FILTER;
 }
 
+export function normalizeQueueSearchQuery(input: string | undefined) {
+  if (!input) {
+    return "";
+  }
+
+  return input.trim().replace(/\s+/g, " ").slice(0, MAX_QUEUE_QUERY_LENGTH);
+}
+
+export function parseQueueSearchQuery(input: string | string[] | undefined) {
+  return normalizeQueueSearchQuery(getFirstSearchParamValue(input));
+}
+
 export function parseQueueFilters(
   input: QueueFiltersSearchParams,
 ): {
   page: number;
+  query: string;
   status: QueueStatusFilter;
   month: QueueMonthFilter;
   source: QueueSourceFilter;
 } {
   return {
     page: parseQueuePage(input.page),
+    query: parseQueueSearchQuery(input.q),
     status: parseQueueStatusFilter(input.status),
     month: parseQueueMonthFilter(input.month),
     source: parseQueueSourceFilter(input.source),
@@ -92,11 +110,17 @@ export function parseQueueFilters(
 
 export function buildQueueSearchParams({
   page = 1,
+  query = "",
   status = DEFAULT_QUEUE_STATUS_FILTER,
   month = ALL_QUEUE_MONTH_FILTER,
   source = ALL_QUEUE_SOURCE_FILTER,
 }: BuildQueueSearchParamsInput) {
   const params = new URLSearchParams();
+  const normalizedQuery = normalizeQueueSearchQuery(query);
+
+  if (normalizedQuery) {
+    params.set("q", normalizedQuery);
+  }
 
   if (status !== DEFAULT_QUEUE_STATUS_FILTER) {
     params.set("status", status);

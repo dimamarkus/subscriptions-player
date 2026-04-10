@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, isNull, or, sql } from "drizzle-orm";
 
 import { getDb } from "@/db/client";
 import { inboundEmails, releaseImportOccurrences, releases, userReleases } from "@/db/schema";
@@ -17,6 +17,7 @@ import {
 
 type ListUserQueueItemsInput = {
   userId: string;
+  query: string;
   status: QueueStatusFilter;
   month: QueueMonthFilter;
   source: QueueSourceFilter;
@@ -26,6 +27,7 @@ type ListUserQueueItemsInput = {
 
 export async function listUserQueueItems({
   userId,
+  query,
   status,
   month,
   source,
@@ -69,6 +71,7 @@ export async function listUserQueueItems({
     .as("original_email_dates");
 
   function buildWhereClause(filterValues: {
+    query: string;
     month: QueueMonthFilter;
     source: QueueSourceFilter;
   }) {
@@ -82,6 +85,18 @@ export async function listUserQueueItems({
       filters.push(eq(releases.bandcampDomain, filterValues.source));
     }
 
+    if (filterValues.query) {
+      const searchPattern = `%${filterValues.query}%`;
+
+      filters.push(
+        or(
+          ilike(releases.releaseTitle, searchPattern),
+          ilike(releases.artistName, searchPattern),
+          ilike(releases.canonicalUrl, searchPattern),
+        )!,
+      );
+    }
+
     if (filterValues.month === UNDATED_QUEUE_MONTH_FILTER) {
       filters.push(isNull(originalEmailDates.originalEmailMonth));
     } else if (filterValues.month !== ALL_QUEUE_MONTH_FILTER) {
@@ -91,7 +106,7 @@ export async function listUserQueueItems({
     return filters.length === 1 ? filters[0] : and(...filters);
   }
 
-  const whereClause = buildWhereClause({ month, source });
+  const whereClause = buildWhereClause({ query, month, source });
   const [{ totalCount }] = await db
     .select({ totalCount: count() })
     .from(userReleases)
@@ -135,6 +150,7 @@ export async function listUserQueueItems({
     .leftJoin(originalEmailDates, eq(originalEmailDates.userReleaseId, userReleases.id))
     .where(
       buildWhereClause({
+        query,
         month: ALL_QUEUE_MONTH_FILTER,
         source,
       }),
@@ -151,6 +167,7 @@ export async function listUserQueueItems({
     .leftJoin(originalEmailDates, eq(originalEmailDates.userReleaseId, userReleases.id))
     .where(
       buildWhereClause({
+        query,
         month,
         source: ALL_QUEUE_SOURCE_FILTER,
       }),
