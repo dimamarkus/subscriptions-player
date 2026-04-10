@@ -359,16 +359,16 @@ export function QueuePlaybackList({
 
       {activeItem?.embedUrl && activeDisplay ? (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-sky-400/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.95),rgba(9,12,22,0.98))] shadow-[0_-18px_60px_rgba(2,6,23,0.5)] backdrop-blur-xl">
-          <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="relative min-w-0 flex-1 pr-10">
-              <button
-                type="button"
-                onClick={() => setActiveItem(null)}
-                aria-label="Close now playing"
-                className="absolute right-0 top-0 inline-flex size-7 items-center justify-center rounded-full border border-white/10 text-sm text-zinc-400 transition hover:border-white/25 hover:text-white"
-              >
-                ×
-              </button>
+          <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 pr-12 sm:px-6 sm:pr-14 lg:flex-row lg:items-center lg:justify-between">
+            <button
+              type="button"
+              onClick={() => setActiveItem(null)}
+              aria-label="Close now playing"
+              className="absolute right-4 top-4 inline-flex size-7 items-center justify-center rounded-full border border-white/10 text-sm text-zinc-400 transition hover:border-white/25 hover:text-white sm:right-6"
+            >
+              ×
+            </button>
+            <div className="min-w-0 flex-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-200/65">
                 Now playing
               </p>
