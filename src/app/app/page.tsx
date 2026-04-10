@@ -11,7 +11,9 @@ import { getActiveInboundAlias } from "@/lib/inbound-aliases/get-active-inbound-
 import { listUserQueueItems } from "@/lib/releases/list-user-queue-items";
 import {
   buildQueueSearchParams,
+  DOUBLE_QUEUE_LAYOUT,
   parseQueueFilters,
+  type QueueLayout,
   type QueueMonthFilter,
   type QueueSourceFilter,
 } from "@/lib/releases/queue-filters";
@@ -28,6 +30,7 @@ type AppHomePageProps = {
     status?: string | string[];
     month?: string | string[];
     source?: string | string[];
+    layout?: string | string[];
   }>;
 };
 
@@ -35,6 +38,7 @@ function getQueuePageHref(input: {
   status: QueueStatusFilter;
   month: QueueMonthFilter;
   source: QueueSourceFilter;
+  layout: QueueLayout;
   page: number;
 }) {
   const query = buildQueueSearchParams(input).toString();
@@ -54,6 +58,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
     status: selectedStatus,
     month: selectedMonth,
     source: selectedSource,
+    layout: selectedLayout,
     page: requestedPage,
   } = parseQueueFilters(params);
   const queueResult = await listUserQueueItems({
@@ -83,6 +88,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
         selectedStatus={selectedStatus}
         selectedMonth={selectedMonth}
         selectedSource={selectedSource}
+        selectedLayout={selectedLayout}
         availableMonths={queueResult.availableMonths}
         availableSources={queueResult.availableSources}
       />
@@ -103,7 +109,13 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
           <p className="text-sm leading-7 text-zinc-400">No {emptyStateLabel} found.</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div
+          className={
+            selectedLayout === DOUBLE_QUEUE_LAYOUT
+              ? "grid grid-cols-1 gap-3 lg:grid-cols-2"
+              : "grid grid-cols-1 gap-3"
+          }
+        >
           {queueItems.map((item) => {
             const releaseTitle = item.releaseTitle ?? item.canonicalUrl;
             const artistName = item.artistName ?? item.bandcampDomain;
@@ -116,7 +128,11 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
             return (
               <article
                 key={item.userReleaseId}
-                className="w-full max-w-[700px] rounded-[1.75rem] border border-white/10 bg-black/20 p-4"
+                className={
+                  selectedLayout === DOUBLE_QUEUE_LAYOUT
+                    ? "h-full w-full rounded-[1.75rem] border border-white/10 bg-black/20 p-4"
+                    : "w-full max-w-[700px] rounded-[1.75rem] border border-white/10 bg-black/20 p-4"
+                }
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 space-y-2">
@@ -192,6 +208,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
                 status: selectedStatus,
                 month: selectedMonth,
                 source: selectedSource,
+                layout: selectedLayout,
                 page: queueResult.currentPage - 1,
               })}
               className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:border-white/30"
@@ -214,6 +231,7 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
                 status: selectedStatus,
                 month: selectedMonth,
                 source: selectedSource,
+                layout: selectedLayout,
                 page: queueResult.currentPage + 1,
               })}
               className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:border-white/30"
