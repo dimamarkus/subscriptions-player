@@ -22,6 +22,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatIsoDateLabel } from "@/lib/dates/format-iso-date-label";
+import {
+  USER_RELEASE_STATUS_ACTION_OPTIONS,
+  USER_RELEASE_STATUS_BADGE_CLASS_NAMES,
+} from "@/lib/releases/user-release-status-ui";
 import type { UserReleaseStatus } from "@/lib/releases/user-release-status";
 import { cn } from "@/lib/utils";
 
@@ -41,25 +45,6 @@ type QueueItemStatusBadgeProps = {
     resolvedStatus: string;
     hasEmbed: boolean;
   };
-};
-
-const STATUS_OPTIONS: Array<{
-  label: string;
-  status: UserReleaseStatus;
-}> = [
-  { label: "New", status: "new" },
-  { label: "Listened", status: "listened" },
-  { label: "Save", status: "saved" },
-  { label: "Skip", status: "skipped" },
-  { label: "Archive", status: "archived" },
-];
-
-const STATUS_BADGE_CLASS_NAMES: Record<UserReleaseStatus, string> = {
-  new: "border-white/15 bg-white/5 text-zinc-200",
-  listened: "border-sky-400/30 bg-sky-400/10 text-sky-100",
-  saved: "border-emerald-400/30 bg-emerald-400/10 text-emerald-100",
-  skipped: "border-amber-400/30 bg-amber-400/10 text-amber-100",
-  archived: "border-zinc-500/40 bg-zinc-500/10 text-zinc-300",
 };
 
 export function QueueItemStatusBadge({
@@ -102,7 +87,7 @@ export function QueueItemStatusBadge({
             type="button"
             className={cn(
               "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition hover:border-white/30 disabled:cursor-wait disabled:opacity-60",
-              STATUS_BADGE_CLASS_NAMES[currentStatus],
+              USER_RELEASE_STATUS_BADGE_CLASS_NAMES[currentStatus],
             )}
             disabled={isPending}
           >
@@ -113,7 +98,7 @@ export function QueueItemStatusBadge({
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {STATUS_OPTIONS.map((option) => {
+          {USER_RELEASE_STATUS_ACTION_OPTIONS.map((option) => {
             return (
               <DropdownMenuItem
                 key={option.status}

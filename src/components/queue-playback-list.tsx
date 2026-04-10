@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { BandcampEmbedPlayer } from "@/components/bandcamp-embed-player";
 import { QueueItemStatusBadge } from "@/components/queue-item-status-badge";
-import { getBandcampDomainLabel } from "@/lib/bandcamp/get-bandcamp-domain-label";
+import { UserReleaseStatusQuickActions } from "@/components/user-release-status-quick-actions";
 import { formatIsoDateLabel } from "@/lib/dates/format-iso-date-label";
+import { formatReleaseDisplay } from "@/lib/releases/format-release-display";
 import {
   buildQueueSearchParams,
   type QueueMonthFilter,
@@ -34,6 +35,12 @@ type QueuePlaybackItem = {
   originalEmailSentOn: string | null;
   resolvedStatus: string;
   embedUrl: string | null;
+};
+
+type ActivePlaybackItem = QueuePlaybackItem & {
+  displayTitle: string;
+  detailsArtistName: string;
+  bandcampLabel: string;
 };
 
 type QueuePlaybackListProps = {
@@ -72,24 +79,19 @@ export function QueuePlaybackList({
   selectedMonth,
   selectedSource,
 }: QueuePlaybackListProps) {
-  const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const [activeItem, setActiveItem] = useState<ActivePlaybackItem | null>(null);
   const [hoveredArtItemId, setHoveredArtItemId] = useState<string | null>(null);
-  const articleRefs = useRef<Record<string, HTMLElement | null>>({});
-  const activeItem = useMemo(
-    () => items.find((item) => item.userReleaseId === activeItemId) ?? null,
-    [activeItemId, items],
+  const activeDisplay = useMemo(
+    () =>
+      activeItem
+        ? {
+            displayTitle: activeItem.displayTitle,
+            detailsArtistName: activeItem.detailsArtistName,
+            bandcampLabel: activeItem.bandcampLabel,
+          }
+        : null,
+    [activeItem],
   );
-
-  function scrollToActiveItem() {
-    if (!activeItem) {
-      return;
-    }
-
-    articleRefs.current[activeItem.userReleaseId]?.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
-  }
 
   return (
     <div className={cn("space-y-4", activeItem ? "pb-80 md:pb-72" : undefined)}>
@@ -127,10 +129,13 @@ export function QueuePlaybackList({
       ) : (
         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {items.map((item) => {
-            const releaseTitle = item.releaseTitle ?? item.canonicalUrl;
-            const bandcampLabel = getBandcampDomainLabel(item.bandcampDomain);
-            const artistName = item.artistName;
-            const detailsArtistName = artistName ?? bandcampLabel;
+            const { bandcampLabel, detailsArtistName, displayTitle } =
+              formatReleaseDisplay({
+                releaseTitle: item.releaseTitle,
+                artistName: item.artistName,
+                canonicalUrl: item.canonicalUrl,
+                bandcampDomain: item.bandcampDomain,
+              });
             const originalEmailDateLabel = item.originalEmailSentOn
               ? formatIsoDateLabel(item.originalEmailSentOn)
               : null;
@@ -138,18 +143,19 @@ export function QueuePlaybackList({
             const isArtHovered = hoveredArtItemId === item.userReleaseId;
             const canPlay = Boolean(item.embedUrl);
             const artLabel = canPlay
-              ? `Play ${releaseTitle} in dock`
-              : `${releaseTitle} artwork unavailable for playback`;
+              ? `Play ${displayTitle} in dock`
+              : `${displayTitle} artwork unavailable for playback`;
 
             return (
               <article
                 key={item.userReleaseId}
-                ref={(element) => {
-                  articleRefs.current[item.userReleaseId] = element;
-                }}
                 className={cn(
-                  "scroll-mb-[18rem] rounded-[1.75rem] border border-white/10 bg-black/20 p-4 md:scroll-mb-[14rem]",
+                  "scroll-mb-[18rem] rounded-[1.75rem] border border-white/10 bg-black/20 p-4 transition md:scroll-mb-[14rem]",
                   "h-full w-full",
+                  item.status !== "new" && !isActive ? "opacity-75" : undefined,
+                  isActive
+                    ? "border-sky-400/30 bg-linear-to-br from-sky-400/[0.12] via-sky-500/[0.05] to-black/40 shadow-[0_0_0_1px_rgba(56,189,248,0.08),0_18px_50px_rgba(8,47,73,0.22)]"
+                    : undefined,
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -160,7 +166,12 @@ export function QueuePlaybackList({
                         return;
                       }
 
-                      setActiveItemId(item.userReleaseId);
+                      setActiveItem({
+                        ...item,
+                        displayTitle,
+                        detailsArtistName,
+                        bandcampLabel,
+                      });
                     }}
                     onPointerEnter={() => {
                       if (canPlay) {
@@ -189,12 +200,15 @@ export function QueuePlaybackList({
                       canPlay
                         ? "cursor-pointer hover:border-white/25"
                         : "cursor-default",
+                      isActive
+                        ? "border-sky-400/30 shadow-[0_0_0_1px_rgba(56,189,248,0.12)]"
+                        : undefined,
                     )}
                   >
                     {item.coverImageUrl ? (
                       <Image
                         src={item.coverImageUrl}
-                        alt={`${releaseTitle} cover art`}
+                        alt={`${displayTitle} cover art`}
                         fill
                         sizes="(min-width: 1024px) 96px, 80px"
                         className={cn(
@@ -231,29 +245,26 @@ export function QueuePlaybackList({
                         </span>
                       </span>
                     </div>
-                    {isActive ? (
-                      <div className="absolute inset-x-2 bottom-2 rounded-full bg-sky-400/85 px-2 py-1 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-950">
-                        Playing
-                      </div>
-                    ) : null}
                   </button>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 space-y-1">
-                        {originalEmailDateLabel ? (
-                          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-600">
-                            {originalEmailDateLabel}
-                          </p>
-                        ) : null}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {originalEmailDateLabel ? (
+                            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-zinc-600">
+                              {originalEmailDateLabel}
+                            </p>
+                          ) : null}
+                          {isActive ? (
+                            <span className="rounded-full border border-sky-400/25 bg-sky-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-100">
+                              Now playing
+                            </span>
+                          ) : null}
+                        </div>
                         <h2 className="line-clamp-2 text-base font-semibold leading-snug tracking-tight text-white sm:text-lg">
-                          {releaseTitle}
+                          {displayTitle}
                         </h2>
-                        {artistName ? (
-                          <p className="truncate text-sm text-zinc-400">
-                            {artistName}
-                          </p>
-                        ) : null}
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
                           <span>{item.releaseType}</span>
                           <span aria-hidden="true" className="text-zinc-700">
@@ -266,7 +277,7 @@ export function QueuePlaybackList({
                       <QueueItemStatusBadge
                         userReleaseId={item.userReleaseId}
                         currentStatus={item.status}
-                        releaseTitle={releaseTitle}
+                        releaseTitle={displayTitle}
                         artistName={detailsArtistName}
                         diagnostics={{
                           canonicalUrl: item.canonicalUrl,
@@ -291,7 +302,7 @@ export function QueuePlaybackList({
                   </div>
                 ) : (
                   <div className="sr-only" aria-live="polite">
-                    {isActive ? `${releaseTitle} is now playing in the dock.` : null}
+                    {isActive ? `${displayTitle} is now playing in the dock.` : null}
                   </div>
                 )}
               </article>
@@ -346,51 +357,62 @@ export function QueuePlaybackList({
         </div>
       ) : null}
 
-      {activeItem?.embedUrl ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-zinc-950/95 backdrop-blur">
+      {activeItem?.embedUrl && activeDisplay ? (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-sky-400/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.95),rgba(9,12,22,0.98))] shadow-[0_-18px_60px_rgba(2,6,23,0.5)] backdrop-blur-xl">
           <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-zinc-500">
+            <div className="relative min-w-0 flex-1 pr-10">
+              <button
+                type="button"
+                onClick={() => setActiveItem(null)}
+                aria-label="Close now playing"
+                className="absolute right-0 top-0 inline-flex size-7 items-center justify-center rounded-full border border-white/10 text-sm text-zinc-400 transition hover:border-white/25 hover:text-white"
+              >
+                ×
+              </button>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-200/65">
                 Now playing
               </p>
               <div className="mt-2 min-w-0">
                 <p className="truncate text-base font-semibold text-white">
-                  {activeItem.releaseTitle ?? activeItem.canonicalUrl}
+                  {activeDisplay.displayTitle}
                 </p>
-                <p className="truncate text-sm text-zinc-400">
-                  {activeItem.artistName ?? activeItem.bandcampDomain}
-                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium uppercase tracking-[0.16em] text-zinc-400">
+                  <span>{activeItem.releaseType}</span>
+                  <span aria-hidden="true" className="text-zinc-700">
+                    •
+                  </span>
+                  <a
+                    href={`https://${activeItem.bandcampDomain}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="transition hover:text-white"
+                  >
+                    {activeDisplay.bandcampLabel}
+                  </a>
+                </div>
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={scrollToActiveItem}
-                  className="rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-zinc-100 transition hover:border-white/30"
-                >
-                  View queue card
-                </button>
-                <a
-                  href={activeItem.canonicalUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-white/20 hover:text-white"
-                >
-                  Open release
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setActiveItemId(null)}
-                  className="rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-white/20 hover:text-white"
-                >
-                  Close
-                </button>
+              <div className="mt-4">
+                <UserReleaseStatusQuickActions
+                  userReleaseId={activeItem.userReleaseId}
+                  currentStatus={activeItem.status}
+                  onStatusChange={(status) => {
+                    setActiveItem((currentValue) =>
+                      currentValue
+                        ? {
+                            ...currentValue,
+                            status,
+                          }
+                        : currentValue,
+                    );
+                  }}
+                />
               </div>
             </div>
 
             <div className="w-full max-w-2xl">
               <BandcampEmbedPlayer
                 src={activeItem.embedUrl}
-                title={activeItem.releaseTitle ?? activeItem.canonicalUrl}
+                title={activeDisplay.displayTitle}
               />
             </div>
           </div>
