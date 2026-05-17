@@ -8,10 +8,7 @@ import { useState, useTransition } from "react";
 import { updateUserReleaseRatingAction } from "@/actions/user-releases";
 import { useNowPlaying } from "@/components/now-playing-provider";
 import { QueueItemStatusBadge } from "@/components/queue-item-status-badge";
-import {
-  RatingControl,
-  type RatingControlOption,
-} from "@/components/rating-control";
+import { StarRating } from "@/components/star-rating";
 import { formatIsoDateLabel } from "@/lib/dates/format-iso-date-label";
 import { formatReleaseDisplay } from "@/lib/releases/format-release-display";
 import {
@@ -20,8 +17,8 @@ import {
   type QueueSourceFilter,
 } from "@/lib/releases/queue-filters";
 import {
+  assertUserReleaseRatingHalfSteps,
   formatUserReleaseRatingLabel,
-  USER_RELEASE_RATING_HALF_STEP_VALUES,
   type UserReleaseRatingHalfSteps,
 } from "@/lib/releases/user-release-rating";
 import type {
@@ -29,20 +26,6 @@ import type {
   UserReleaseStatus,
 } from "@/lib/releases/user-release-status";
 import { cn } from "@/lib/utils";
-
-const USER_RELEASE_RATING_OPTIONS: RatingControlOption<UserReleaseRatingHalfSteps>[] =
-  USER_RELEASE_RATING_HALF_STEP_VALUES.map((value) => {
-    const starCount = value / 2;
-    const shortLabel = Number.isInteger(starCount)
-      ? starCount.toFixed(0)
-      : starCount.toFixed(1);
-
-    return {
-      value,
-      label: formatUserReleaseRatingLabel(value),
-      shortLabel,
-    };
-  });
 
 type QueuePlaybackItem = {
   userReleaseId: string;
@@ -337,27 +320,25 @@ export function QueuePlaybackList({
                   </div>
                 )}
 
-                <div className="mt-3 space-y-2 rounded-2xl border border-white/10 bg-zinc-950/40 px-3 py-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
-                      Rating
-                    </p>
-                    <p className="text-xs text-zinc-400">
-                      {item.ratingHalfSteps === null
-                        ? "Unrated"
-                        : formatUserReleaseRatingLabel(item.ratingHalfSteps)}
-                    </p>
-                  </div>
-                  <RatingControl
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-950/40 px-3 py-2">
+                  <StarRating
                     value={item.ratingHalfSteps}
-                    options={USER_RELEASE_RATING_OPTIONS}
                     ariaLabel={`Rate ${displayTitle}`}
                     disabled={pendingRatingItemId !== null}
                     onChange={(ratingHalfSteps) =>
-                      updateRating(item.userReleaseId, ratingHalfSteps)
+                      updateRating(
+                        item.userReleaseId,
+                        ratingHalfSteps === null
+                          ? null
+                          : assertUserReleaseRatingHalfSteps(ratingHalfSteps),
+                      )
                     }
-                    clearLabel="Clear"
                   />
+                  <p className="text-xs text-zinc-400">
+                    {item.ratingHalfSteps === null
+                      ? "Click to rate"
+                      : formatUserReleaseRatingLabel(item.ratingHalfSteps)}
+                  </p>
                 </div>
               </article>
             );

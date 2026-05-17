@@ -89,7 +89,7 @@ export function QueueItemStatusBadge({
           <button
             type="button"
             className={cn(
-              "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition hover:border-white/30 disabled:cursor-wait disabled:opacity-60",
+              "inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] transition hover:border-white/30 disabled:cursor-wait disabled:opacity-60",
               USER_RELEASE_STATUS_BADGE_CLASS_NAMES[currentStatus],
             )}
             disabled={isPending}
