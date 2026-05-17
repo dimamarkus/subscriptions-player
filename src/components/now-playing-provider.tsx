@@ -2,11 +2,13 @@
 
 import { createContext, useContext, useMemo, useState } from "react";
 
+import type { UserReleaseRatingHalfSteps } from "@/lib/releases/user-release-rating";
 import type { UserReleaseStatus } from "@/lib/releases/user-release-status";
 
 export type NowPlayingItem = {
   userReleaseId: string;
   status: UserReleaseStatus;
+  ratingHalfSteps: UserReleaseRatingHalfSteps | null;
   canonicalUrl: string;
   bandcampDomain: string;
   artistName: string | null;
@@ -29,6 +31,9 @@ type NowPlayingContextValue = {
   playItem: (item: NowPlayingItem) => void;
   closeItem: () => void;
   updateActiveItemStatus: (status: UserReleaseStatus) => void;
+  updateActiveItemRating: (
+    ratingHalfSteps: UserReleaseRatingHalfSteps | null,
+  ) => void;
 };
 
 const NowPlayingContext = createContext<NowPlayingContextValue | null>(null);
@@ -51,6 +56,15 @@ export function NowPlayingProvider({ children }: NowPlayingProviderProps) {
             ? {
                 ...currentValue,
                 status,
+              }
+            : currentValue,
+        ),
+      updateActiveItemRating: (ratingHalfSteps) =>
+        setActiveItem((currentValue) =>
+          currentValue
+            ? {
+                ...currentValue,
+                ratingHalfSteps,
               }
             : currentValue,
         ),

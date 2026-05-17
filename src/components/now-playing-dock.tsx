@@ -1,14 +1,42 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+
+import { updateUserReleaseRatingAction } from "@/actions/user-releases";
 import { BandcampEmbedPlayer } from "@/components/bandcamp-embed-player";
-import { UserReleaseStatusQuickActions } from "@/components/user-release-status-quick-actions";
 import { useNowPlaying } from "@/components/now-playing-provider";
+import { StarRating } from "@/components/star-rating";
+import { UserReleaseStatusQuickActions } from "@/components/user-release-status-quick-actions";
+import {
+  assertUserReleaseRatingHalfSteps,
+  type UserReleaseRatingHalfSteps,
+} from "@/lib/releases/user-release-rating";
 
 export function NowPlayingDock() {
-  const { activeItem, closeItem, updateActiveItemStatus } = useNowPlaying();
+  const router = useRouter();
+  const { activeItem, closeItem, updateActiveItemStatus, updateActiveItemRating } =
+    useNowPlaying();
+  const [isRatingPending, startRatingTransition] = useTransition();
 
   if (!activeItem?.embedUrl) {
     return null;
+  }
+
+  function handleRatingChange(
+    ratingHalfSteps: UserReleaseRatingHalfSteps | null,
+  ) {
+    if (!activeItem) {
+      return;
+    }
+
+    const userReleaseId = activeItem.userReleaseId;
+
+    startRatingTransition(async () => {
+      await updateUserReleaseRatingAction(userReleaseId, ratingHalfSteps);
+      updateActiveItemRating(ratingHalfSteps);
+      router.refresh();
+    });
   }
 
   return (
@@ -23,27 +51,44 @@ export function NowPlayingDock() {
           ×
         </button>
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-200/65">
-            Now playing
-          </p>
-          <div className="mt-2 min-w-0">
-            <p className="truncate text-base font-semibold text-white">
-              {activeItem.displayTitle}
-            </p>
-            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium uppercase tracking-[0.16em] text-zinc-400">
-              <span>{activeItem.releaseType}</span>
-              <span aria-hidden="true" className="text-zinc-700">
-                •
-              </span>
-              <a
-                href={`https://${activeItem.bandcampDomain}`}
-                target="_blank"
-                rel="noreferrer"
-                className="transition hover:text-white"
-              >
-                {activeItem.bandcampLabel}
-              </a>
+          <div className="flex items-start justify-between gap-4 pr-8 sm:pr-10">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-200/65">
+                Now playing
+              </p>
+              <div className="mt-2 min-w-0">
+                <p className="truncate text-base font-semibold text-white">
+                  {activeItem.displayTitle}
+                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-medium uppercase tracking-[0.16em] text-zinc-400">
+                  <span>{activeItem.releaseType}</span>
+                  <span aria-hidden="true" className="text-zinc-700">
+                    •
+                  </span>
+                  <a
+                    href={`https://${activeItem.bandcampDomain}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="transition hover:text-white"
+                  >
+                    {activeItem.bandcampLabel}
+                  </a>
+                </div>
+              </div>
             </div>
+            <StarRating
+              value={activeItem.ratingHalfSteps}
+              ariaLabel={`Rate ${activeItem.displayTitle}`}
+              disabled={isRatingPending}
+              size={22}
+              onChange={(ratingHalfSteps) =>
+                handleRatingChange(
+                  ratingHalfSteps === null
+                    ? null
+                    : assertUserReleaseRatingHalfSteps(ratingHalfSteps),
+                )
+              }
+            />
           </div>
           <div className="mt-4">
             <UserReleaseStatusQuickActions

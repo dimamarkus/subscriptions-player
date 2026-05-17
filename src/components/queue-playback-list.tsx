@@ -81,7 +81,12 @@ export function QueuePlaybackList({
   selectedSource,
 }: QueuePlaybackListProps) {
   const router = useRouter();
-  const { activeItem, playItem, updateActiveItemStatus } = useNowPlaying();
+  const {
+    activeItem,
+    playItem,
+    updateActiveItemStatus,
+    updateActiveItemRating,
+  } = useNowPlaying();
   const [hoveredArtItemId, setHoveredArtItemId] = useState<string | null>(null);
   const [pendingRatingItemId, setPendingRatingItemId] = useState<string | null>(
     null,
@@ -97,6 +102,9 @@ export function QueuePlaybackList({
     startRatingTransition(async () => {
       try {
         await updateUserReleaseRatingAction(userReleaseId, ratingHalfSteps);
+        if (activeItem?.userReleaseId === userReleaseId) {
+          updateActiveItemRating(ratingHalfSteps);
+        }
         router.refresh();
       } finally {
         setPendingRatingItemId(null);
