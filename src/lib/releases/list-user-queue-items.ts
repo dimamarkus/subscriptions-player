@@ -121,6 +121,7 @@ export async function listUserQueueItems({
       releaseId: releases.id,
       userReleaseId: userReleases.id,
       status: userReleases.status,
+      ratingHalfSteps: userReleases.ratingHalfSteps,
       firstSeenAt: userReleases.firstSeenAt,
       lastSeenAt: userReleases.lastSeenAt,
       importCount: userReleases.importCount,

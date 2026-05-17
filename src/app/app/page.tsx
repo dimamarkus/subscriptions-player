@@ -8,6 +8,7 @@ import { listUserQueueItems } from "@/lib/releases/list-user-queue-items";
 import {
   parseQueueFilters,
 } from "@/lib/releases/queue-filters";
+import { assertUserReleaseRatingHalfSteps } from "@/lib/releases/user-release-rating";
 import {
   ALL_QUEUE_STATUS_FILTER,
 } from "@/lib/releases/user-release-status";
@@ -56,6 +57,10 @@ export default async function AppHomePage({ searchParams }: AppHomePageProps) {
   const playbackItems = queueItems.map((item) => ({
     userReleaseId: item.userReleaseId,
     status: item.status,
+    ratingHalfSteps:
+      item.ratingHalfSteps === null
+        ? null
+        : assertUserReleaseRatingHalfSteps(item.ratingHalfSteps),
     canonicalUrl: item.canonicalUrl,
     bandcampDomain: item.bandcampDomain,
     artistName: item.artistName,

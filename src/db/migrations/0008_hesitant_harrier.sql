@@ -1,0 +1,2 @@
+ALTER TABLE "user_releases" ADD COLUMN "rating_half_steps" integer;--> statement-breakpoint
+ALTER TABLE "user_releases" ADD CONSTRAINT "user_releases_rating_half_steps_check" CHECK ("user_releases"."rating_half_steps" is null or "user_releases"."rating_half_steps" between 2 and 10);

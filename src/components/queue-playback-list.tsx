@@ -2,10 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
+import { updateUserReleaseRatingAction } from "@/actions/user-releases";
 import { useNowPlaying } from "@/components/now-playing-provider";
 import { QueueItemStatusBadge } from "@/components/queue-item-status-badge";
+import {
+  RatingControl,
+  type RatingControlOption,
+} from "@/components/rating-control";
 import { formatIsoDateLabel } from "@/lib/dates/format-iso-date-label";
 import { formatReleaseDisplay } from "@/lib/releases/format-release-display";
 import {
@@ -13,15 +19,35 @@ import {
   type QueueMonthFilter,
   type QueueSourceFilter,
 } from "@/lib/releases/queue-filters";
+import {
+  formatUserReleaseRatingLabel,
+  USER_RELEASE_RATING_HALF_STEP_VALUES,
+  type UserReleaseRatingHalfSteps,
+} from "@/lib/releases/user-release-rating";
 import type {
   QueueStatusFilter,
   UserReleaseStatus,
 } from "@/lib/releases/user-release-status";
 import { cn } from "@/lib/utils";
 
+const USER_RELEASE_RATING_OPTIONS: RatingControlOption<UserReleaseRatingHalfSteps>[] =
+  USER_RELEASE_RATING_HALF_STEP_VALUES.map((value) => {
+    const starCount = value / 2;
+    const shortLabel = Number.isInteger(starCount)
+      ? starCount.toFixed(0)
+      : starCount.toFixed(1);
+
+    return {
+      value,
+      label: formatUserReleaseRatingLabel(value),
+      shortLabel,
+    };
+  });
+
 type QueuePlaybackItem = {
   userReleaseId: string;
   status: UserReleaseStatus;
+  ratingHalfSteps: UserReleaseRatingHalfSteps | null;
   canonicalUrl: string;
   bandcampDomain: string;
   artistName: string | null;
@@ -72,8 +98,29 @@ export function QueuePlaybackList({
   selectedMonth,
   selectedSource,
 }: QueuePlaybackListProps) {
+  const router = useRouter();
   const { activeItem, playItem, updateActiveItemStatus } = useNowPlaying();
   const [hoveredArtItemId, setHoveredArtItemId] = useState<string | null>(null);
+  const [pendingRatingItemId, setPendingRatingItemId] = useState<string | null>(
+    null,
+  );
+  const [, startRatingTransition] = useTransition();
+
+  function updateRating(
+    userReleaseId: string,
+    ratingHalfSteps: UserReleaseRatingHalfSteps | null,
+  ) {
+    setPendingRatingItemId(userReleaseId);
+
+    startRatingTransition(async () => {
+      try {
+        await updateUserReleaseRatingAction(userReleaseId, ratingHalfSteps);
+        router.refresh();
+      } finally {
+        setPendingRatingItemId(null);
+      }
+    });
+  }
 
   return (
     <div className="space-y-4">
@@ -289,6 +336,29 @@ export function QueuePlaybackList({
                     {isActive ? `${displayTitle} is now playing in the dock.` : null}
                   </div>
                 )}
+
+                <div className="mt-3 space-y-2 rounded-2xl border border-white/10 bg-zinc-950/40 px-3 py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-zinc-500">
+                      Rating
+                    </p>
+                    <p className="text-xs text-zinc-400">
+                      {item.ratingHalfSteps === null
+                        ? "Unrated"
+                        : formatUserReleaseRatingLabel(item.ratingHalfSteps)}
+                    </p>
+                  </div>
+                  <RatingControl
+                    value={item.ratingHalfSteps}
+                    options={USER_RELEASE_RATING_OPTIONS}
+                    ariaLabel={`Rate ${displayTitle}`}
+                    disabled={pendingRatingItemId !== null}
+                    onChange={(ratingHalfSteps) =>
+                      updateRating(item.userReleaseId, ratingHalfSteps)
+                    }
+                    clearLabel="Clear"
+                  />
+                </div>
               </article>
             );
           })}

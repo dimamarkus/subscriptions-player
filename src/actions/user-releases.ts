@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/client";
 import { userReleases } from "@/db/schema";
 import { ensureAppUser } from "@/lib/auth/ensure-app-user";
+import { assertUserReleaseRatingHalfSteps } from "@/lib/releases/user-release-rating";
 import type { UserReleaseStatus } from "@/lib/releases/user-release-status";
 
 export async function updateUserReleaseStatusAction(
@@ -18,6 +19,29 @@ export async function updateUserReleaseStatusAction(
     .update(userReleases)
     .set({
       status,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(eq(userReleases.id, userReleaseId), eq(userReleases.userId, user.id)),
+    );
+
+  revalidatePath("/app");
+}
+
+export async function updateUserReleaseRatingAction(
+  userReleaseId: string,
+  ratingHalfSteps: number | null,
+) {
+  const user = await ensureAppUser();
+  const validatedRatingHalfSteps =
+    ratingHalfSteps === null
+      ? null
+      : assertUserReleaseRatingHalfSteps(ratingHalfSteps);
+
+  await getDb()
+    .update(userReleases)
+    .set({
+      ratingHalfSteps: validatedRatingHalfSteps,
       updatedAt: new Date(),
     })
     .where(

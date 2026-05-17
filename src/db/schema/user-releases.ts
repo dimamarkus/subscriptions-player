@@ -1,4 +1,5 @@
-import { index } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { check, index } from "drizzle-orm/pg-core";
 import {
   integer,
   pgEnum,
@@ -30,6 +31,7 @@ export const userReleases = pgTable(
       .notNull()
       .references(() => releases.id, { onDelete: "cascade" }),
     status: userReleaseStatusEnum("status").notNull().default("new"),
+    ratingHalfSteps: integer("rating_half_steps"),
     firstSeenAt: timestamp("first_seen_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -50,6 +52,10 @@ export const userReleases = pgTable(
       table.releaseId,
     ),
     index("user_releases_user_id_idx").on(table.userId),
+    check(
+      "user_releases_rating_half_steps_check",
+      sql`${table.ratingHalfSteps} is null or ${table.ratingHalfSteps} between 2 and 10`,
+    ),
   ],
 );
 
