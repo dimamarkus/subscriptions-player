@@ -51,8 +51,8 @@ export function NowPlayingDock() {
           ×
         </button>
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-4 pr-8 sm:pr-10">
-            <div className="min-w-0">
+          <div className="flex items-start gap-4 pr-8 sm:pr-10">
+            <div className="min-w-0 flex-1">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-sky-200/65">
                 Now playing
               </p>
@@ -81,6 +81,7 @@ export function NowPlayingDock() {
               ariaLabel={`Rate ${activeItem.displayTitle}`}
               disabled={isRatingPending}
               size={22}
+              className="ml-auto shrink-0"
               onChange={(ratingHalfSteps) =>
                 handleRatingChange(
                   ratingHalfSteps === null

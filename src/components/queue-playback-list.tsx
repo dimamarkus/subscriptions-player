@@ -294,44 +294,22 @@ export function QueuePlaybackList({
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-2">
-                        <StarRating
-                          value={item.ratingHalfSteps}
-                          ariaLabel={`Rate ${displayTitle}`}
-                          disabled={pendingRatingItemId !== null}
-                          size={20}
-                          onChange={(ratingHalfSteps) =>
-                            updateRating(
-                              item.userReleaseId,
-                              ratingHalfSteps === null
-                                ? null
-                                : assertUserReleaseRatingHalfSteps(
-                                    ratingHalfSteps,
-                                  ),
-                            )
-                          }
-                        />
-                        <QueueItemStatusBadge
-                          userReleaseId={item.userReleaseId}
-                          currentStatus={effectiveStatus}
-                          releaseTitle={displayTitle}
-                          artistName={detailsArtistName}
-                          onStatusChange={
-                            isActive ? updateActiveItemStatus : undefined
-                          }
-                          diagnostics={{
-                            canonicalUrl: item.canonicalUrl,
-                            bandcampDomain: item.bandcampDomain,
-                            releaseType: item.releaseType,
-                            importCount: item.importCount,
-                            firstSeenAt: item.firstSeenAt,
-                            lastSeenAt: item.lastSeenAt,
-                            originalEmailSentOn: item.originalEmailSentOn,
-                            resolvedStatus: item.resolvedStatus,
-                            hasEmbed: Boolean(item.embedUrl),
-                          }}
-                        />
-                      </div>
+                      <StarRating
+                        value={item.ratingHalfSteps}
+                        ariaLabel={`Rate ${displayTitle}`}
+                        disabled={pendingRatingItemId !== null}
+                        size={20}
+                        onChange={(ratingHalfSteps) =>
+                          updateRating(
+                            item.userReleaseId,
+                            ratingHalfSteps === null
+                              ? null
+                              : assertUserReleaseRatingHalfSteps(
+                                  ratingHalfSteps,
+                                ),
+                          )
+                        }
+                      />
                     </div>
                   </div>
                 </div>
@@ -346,6 +324,29 @@ export function QueuePlaybackList({
                     {isActive ? `${displayTitle} is now playing in the dock.` : null}
                   </div>
                 )}
+
+                <div className="mt-3 flex justify-end">
+                  <QueueItemStatusBadge
+                    userReleaseId={item.userReleaseId}
+                    currentStatus={effectiveStatus}
+                    releaseTitle={displayTitle}
+                    artistName={detailsArtistName}
+                    onStatusChange={
+                      isActive ? updateActiveItemStatus : undefined
+                    }
+                    diagnostics={{
+                      canonicalUrl: item.canonicalUrl,
+                      bandcampDomain: item.bandcampDomain,
+                      releaseType: item.releaseType,
+                      importCount: item.importCount,
+                      firstSeenAt: item.firstSeenAt,
+                      lastSeenAt: item.lastSeenAt,
+                      originalEmailSentOn: item.originalEmailSentOn,
+                      resolvedStatus: item.resolvedStatus,
+                      hasEmbed: Boolean(item.embedUrl),
+                    }}
+                  />
+                </div>
               </article>
             );
           })}
