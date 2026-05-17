@@ -18,7 +18,6 @@ import {
 } from "@/lib/releases/queue-filters";
 import {
   assertUserReleaseRatingHalfSteps,
-  formatUserReleaseRatingLabel,
   type UserReleaseRatingHalfSteps,
 } from "@/lib/releases/user-release-rating";
 import type {
@@ -287,24 +286,44 @@ export function QueuePlaybackList({
                         </div>
                       </div>
 
-                      <QueueItemStatusBadge
-                        userReleaseId={item.userReleaseId}
-                        currentStatus={effectiveStatus}
-                        releaseTitle={displayTitle}
-                        artistName={detailsArtistName}
-                        onStatusChange={isActive ? updateActiveItemStatus : undefined}
-                        diagnostics={{
-                          canonicalUrl: item.canonicalUrl,
-                          bandcampDomain: item.bandcampDomain,
-                          releaseType: item.releaseType,
-                          importCount: item.importCount,
-                          firstSeenAt: item.firstSeenAt,
-                          lastSeenAt: item.lastSeenAt,
-                          originalEmailSentOn: item.originalEmailSentOn,
-                          resolvedStatus: item.resolvedStatus,
-                          hasEmbed: Boolean(item.embedUrl),
-                        }}
-                      />
+                      <div className="flex flex-col items-end gap-2">
+                        <StarRating
+                          value={item.ratingHalfSteps}
+                          ariaLabel={`Rate ${displayTitle}`}
+                          disabled={pendingRatingItemId !== null}
+                          size={20}
+                          onChange={(ratingHalfSteps) =>
+                            updateRating(
+                              item.userReleaseId,
+                              ratingHalfSteps === null
+                                ? null
+                                : assertUserReleaseRatingHalfSteps(
+                                    ratingHalfSteps,
+                                  ),
+                            )
+                          }
+                        />
+                        <QueueItemStatusBadge
+                          userReleaseId={item.userReleaseId}
+                          currentStatus={effectiveStatus}
+                          releaseTitle={displayTitle}
+                          artistName={detailsArtistName}
+                          onStatusChange={
+                            isActive ? updateActiveItemStatus : undefined
+                          }
+                          diagnostics={{
+                            canonicalUrl: item.canonicalUrl,
+                            bandcampDomain: item.bandcampDomain,
+                            releaseType: item.releaseType,
+                            importCount: item.importCount,
+                            firstSeenAt: item.firstSeenAt,
+                            lastSeenAt: item.lastSeenAt,
+                            originalEmailSentOn: item.originalEmailSentOn,
+                            resolvedStatus: item.resolvedStatus,
+                            hasEmbed: Boolean(item.embedUrl),
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -319,27 +338,6 @@ export function QueuePlaybackList({
                     {isActive ? `${displayTitle} is now playing in the dock.` : null}
                   </div>
                 )}
-
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-zinc-950/40 px-3 py-2">
-                  <StarRating
-                    value={item.ratingHalfSteps}
-                    ariaLabel={`Rate ${displayTitle}`}
-                    disabled={pendingRatingItemId !== null}
-                    onChange={(ratingHalfSteps) =>
-                      updateRating(
-                        item.userReleaseId,
-                        ratingHalfSteps === null
-                          ? null
-                          : assertUserReleaseRatingHalfSteps(ratingHalfSteps),
-                      )
-                    }
-                  />
-                  <p className="text-xs text-zinc-400">
-                    {item.ratingHalfSteps === null
-                      ? "Click to rate"
-                      : formatUserReleaseRatingLabel(item.ratingHalfSteps)}
-                  </p>
-                </div>
               </article>
             );
           })}
