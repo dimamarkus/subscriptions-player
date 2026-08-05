@@ -2,6 +2,7 @@ export const USER_RELEASE_STATUSES = [
   "new",
   "listened",
   "saved",
+  "purchased",
   "skipped",
   "archived",
 ] as const;
@@ -22,6 +23,7 @@ export const QUEUE_STATUS_FILTER_OPTIONS: Array<{
   { label: "New", value: "new" },
   { label: "Listened", value: "listened" },
   { label: "Saved", value: "saved" },
+  { label: "Bought", value: "purchased" },
   { label: "Skipped", value: "skipped" },
   { label: "Archived", value: "archived" },
   { label: "All", value: "all" },

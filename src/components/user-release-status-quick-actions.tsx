@@ -54,6 +54,25 @@ function SaveIcon({ className }: StatusQuickIconProps) {
   );
 }
 
+function BoughtIcon({ className }: StatusQuickIconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+      <path d="M3 6h18" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+  );
+}
+
 function SkipIcon({ className }: StatusQuickIconProps) {
   return (
     <svg
@@ -111,6 +130,12 @@ const STATUS_QUICK_ACTIONS = [
     Icon: SaveIcon,
   },
   {
+    status: "purchased",
+    label: "Bought",
+    shortLabel: "Bought",
+    Icon: BoughtIcon,
+  },
+  {
     status: "archived",
     label: "Archived",
     shortLabel: "Archive",
@@ -138,7 +163,7 @@ export function UserReleaseStatusQuickActions({
     <div
       role="group"
       aria-label="Release status"
-      className="grid grid-cols-4 overflow-hidden rounded-2xl border border-white/12 bg-white/3"
+      className="grid grid-cols-5 overflow-hidden rounded-2xl border border-white/12 bg-white/3"
     >
       {STATUS_QUICK_ACTIONS.map((option, index) => {
         const isActive = currentStatus === option.status;
@@ -156,7 +181,7 @@ export function UserReleaseStatusQuickActions({
             aria-label={option.label}
             title={option.label}
             className={cn(
-              "flex min-w-0 flex-col items-center justify-center gap-1 px-1.5 py-2.5 text-[10px] font-semibold uppercase tracking-widest transition disabled:cursor-wait disabled:opacity-60",
+              "flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2.5 text-[10px] font-semibold uppercase tracking-wide transition disabled:cursor-wait disabled:opacity-60",
               "border-r border-white/10 last:border-r-0",
               startsKeepGroup && "border-l border-l-white/25",
               isActive
@@ -164,7 +189,7 @@ export function UserReleaseStatusQuickActions({
                 : "text-zinc-300 hover:bg-white/4 hover:text-white",
             )}
           >
-            <Icon className="size-4 shrink-0" />
+            <Icon className="size-3.5 shrink-0 sm:size-4" />
             <span className="truncate">{option.shortLabel}</span>
           </button>
         );

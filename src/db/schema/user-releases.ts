@@ -16,6 +16,7 @@ export const userReleaseStatusEnum = pgEnum("user_release_status", [
   "new",
   "listened",
   "saved",
+  "purchased",
   "skipped",
   "archived",
 ]);

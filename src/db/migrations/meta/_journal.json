@@ -64,6 +64,13 @@
       "when": 1778998750987,
       "tag": "0008_hesitant_harrier",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779000000000,
+      "tag": "0009_purchased_status",
+      "breakpoints": true
     }
   ]
 }
