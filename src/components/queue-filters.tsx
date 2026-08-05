@@ -80,7 +80,7 @@ export function QueueFilters({
         <AutoSubmitForm
           action="/app"
           submitOnChange={false}
-          className="flex flex-col gap-3 md:flex-row md:items-end"
+          className="block"
         >
           {selectedStatus !== DEFAULT_QUEUE_STATUS_FILTER ? (
             <input type="hidden" name="status" value={selectedStatus} />
@@ -96,24 +96,37 @@ export function QueueFilters({
             <span className="block text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-500">
               Search
             </span>
-            <input
-              type="search"
-              name="q"
-              defaultValue={selectedQuery}
-              placeholder="Title, artist, or link"
-              enterKeyHint="search"
-              className="w-full rounded-2xl border border-white/10 bg-zinc-950 px-4 py-2.5 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-white/25"
-            />
+            <span className="relative block">
+              <input
+                type="search"
+                name="q"
+                defaultValue={selectedQuery}
+                placeholder="Title, artist, or link"
+                enterKeyHint="search"
+                className="w-full rounded-2xl border border-white/10 bg-zinc-950 py-2.5 pl-4 pr-12 text-sm text-zinc-100 outline-none transition placeholder:text-zinc-500 focus:border-white/25 [&::-webkit-search-cancel-button]:appearance-none"
+              />
+              <button
+                type="submit"
+                aria-label="Search queue"
+                title="Search"
+                className="absolute top-1/2 right-1.5 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-xl bg-zinc-50 text-zinc-950 transition hover:bg-zinc-200"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.25"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-4"
+                  aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m20 20-3.5-3.5" />
+                </svg>
+              </button>
+            </span>
           </label>
-
-          <div className="flex flex-wrap items-center gap-2 md:self-end">
-            <button
-              type="submit"
-              className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white transition hover:border-white/30 hover:bg-white/15"
-            >
-              Search
-            </button>
-          </div>
         </AutoSubmitForm>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

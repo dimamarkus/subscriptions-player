@@ -10,32 +10,35 @@ export default async function MarketingPage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-10">
-      <header className="flex items-center justify-between border-b border-white/10 pb-6">
-        <div>
+      <header className="flex flex-col gap-4 border-b border-white/10 pb-6 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <p className="text-sm font-semibold tracking-[0.24em] text-zinc-300">
             TraxHunter
           </p>
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-2 max-w-xl text-sm text-zinc-400">
             A privacy-first Bandcamp listening queue built from forwarded emails.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 text-sm font-medium">
+        <div className="flex shrink-0 flex-wrap items-center gap-3 text-sm font-medium">
           {userId ? (
-            <Link href="/app" className={primaryHeaderLinkClass}>
+            <Link
+              href="/app"
+              className={`${primaryHeaderLinkClass} whitespace-nowrap`}
+            >
               Open app
             </Link>
           ) : (
             <>
               <Link
                 href="/sign-in"
-                className="rounded-full border border-white/15 px-4 py-2 text-zinc-100 transition hover:border-white/30"
+                className="whitespace-nowrap rounded-full border border-white/15 px-4 py-2 text-zinc-100 transition hover:border-white/30"
               >
                 Sign in
               </Link>
               <Link
                 href="/sign-up"
-                className={primaryHeaderLinkClass}
+                className={`${primaryHeaderLinkClass} whitespace-nowrap`}
               >
                 Create account
               </Link>
